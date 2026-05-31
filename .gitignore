@@ -1,0 +1,31 @@
+# .gitignore file created for free with Tower (https://www.git-tower.com/)
+# For suggestions or improvements please contact us using support@git-tower.com
+# Generated on 2026-05-31
+# Includes: typescript
+
+### Universal ###
+# Common files that should be ignored in all projects
+
+# Logs
+*.log
+# Temporary files
+*.tmp
+*~
+
+*.bak
+# Environment files (containing secrets, API keys, credentials)
+.env
+*.env
+.env.*
+
+# Local configuration that shouldn't be shared
+*.local
+
+### Typescript ###
+# typescript specific files
+
+*.tsbuildinfo
+node_modules/
+dist/
+
+.idea
