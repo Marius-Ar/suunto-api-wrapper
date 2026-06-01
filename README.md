@@ -2,8 +2,14 @@
 
 [![npm version](https://img.shields.io/npm/v/suunto-api-wrapper.svg)](https://www.npmjs.com/package/suunto-api-wrapper)
 
-A small, typed TypeScript client for the **Suunto app API** (which is served by
-the Sports Tracker backend at `api.sports-tracker.com`).
+A small, typed TypeScript client for the **Suunto mobile app API** the same
+backend the Suunto phone app talks to (served by Sports Tracker at
+`api.sports-tracker.com`).
+
+**No Suunto apizone / developer account required.** This library does **not**
+use Suunto's official partner API at `apizone.suunto.com`, so there are no
+OAuth client IDs, no app registration, and no developer approval to deal with.
+You authenticate with the same email + password you use in the Suunto app.
 
 It handles the annoying parts and exposes the endpoints as
 typed, resource‑grouped methods:
