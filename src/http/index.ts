@@ -29,14 +29,16 @@ export class HttpClient {
     this.timeoutMs = options.timeoutMs ?? DEFAULTS.timeoutMs;
     this.retries = options.retries ?? DEFAULTS.retries;
     this.retryBackoffMs = options.retryBackoffMs ?? DEFAULTS.retryBackoffMs;
-    this.fetchImpl = options.fetch ?? globalThis.fetch;
+    const fetchImpl = options.fetch ?? globalThis.fetch;
     this.beforeRequest = options.beforeRequest;
 
-    if (typeof this.fetchImpl !== "function") {
+    if (typeof fetchImpl !== "function") {
       throw new TypeError(
         "No fetch implementation available. Use Node 18+ or pass `fetch` in options.",
       );
     }
+
+    this.fetchImpl = options.fetch ? fetchImpl : fetchImpl.bind(globalThis);
   }
 
   get<T>(path: string, options?: RequestOptions): Promise<HttpResponse<T>> {
