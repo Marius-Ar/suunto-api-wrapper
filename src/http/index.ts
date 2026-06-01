@@ -29,7 +29,11 @@ export class HttpClient {
     this.timeoutMs = options.timeoutMs ?? DEFAULTS.timeoutMs;
     this.retries = options.retries ?? DEFAULTS.retries;
     this.retryBackoffMs = options.retryBackoffMs ?? DEFAULTS.retryBackoffMs;
-    this.fetchImpl = options.fetch ?? globalThis.fetch;
+    this.fetchImpl =
+      options.fetch ??
+      (typeof globalThis.fetch === "function"
+        ? globalThis.fetch.bind(globalThis)
+        : globalThis.fetch);
     this.beforeRequest = options.beforeRequest;
 
     if (typeof this.fetchImpl !== "function") {
