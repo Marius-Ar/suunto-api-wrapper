@@ -1,15 +1,7 @@
 export * from "./types.js";
 
-import type {
-  HttpClientOptions,
-  RequestOptions,
-  HttpResponse,
-  RequestContext,
-  RequestBody,
-  Query,
-  QueryValue,
-} from "./types.js";
-import { HttpError } from "./types.js";
+import type {HttpClientOptions, HttpResponse, Query, RequestBody, RequestContext, RequestOptions,} from "./types.js";
+import {HttpError} from "./types.js";
 
 const DEFAULTS = {
   timeoutMs: 30_000,
@@ -41,7 +33,7 @@ export class HttpClient {
     this.beforeRequest = options.beforeRequest;
 
     if (typeof this.fetchImpl !== "function") {
-      throw new Error(
+      throw new TypeError(
         "No fetch implementation available. Use Node 18+ or pass `fetch` in options.",
       );
     }
@@ -160,9 +152,10 @@ export class HttpClient {
   }
 
   private buildUrl(path: string, query?: Query): string {
+    const suffixedPath = path.startsWith("/") ? path : `/${path}`;
     const base = /^https?:\/\//i.test(path)
       ? path
-      : `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+      : `${this.baseUrl}${suffixedPath}`;
     if (!query) return base;
 
     const url = new URL(base);

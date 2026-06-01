@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import type { HttpClient } from "../http/index.js";
+import type { HttpClient } from "../http";
 import type { GetLatestGearParams, GearResponse } from "./types.js";
 
 /** A user's latest gear. */
@@ -21,7 +21,7 @@ export async function getLatestGear(
 export class GearResource {
   constructor(private readonly client: HttpClient) {}
 
-  /** A user's latest gear. */
+  /** A user's latest (?) gear. */
   latest(username: string, params?: GetLatestGearParams): Promise<GearResponse> {
     return getLatestGear(this.client, username, params);
   }

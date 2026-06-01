@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import type { HttpClient } from "../http/index.js";
+import type { HttpClient } from "../http";
 import type { UserProfileResponse, UserSearchResponse } from "./types.js";
 
 /**

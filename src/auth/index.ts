@@ -1,7 +1,7 @@
 export * from "./types.js";
 
-import { HttpClient } from "../http/index.js";
-import { generateXtotp } from "../otp/index.js";
+import { HttpClient } from "../http";
+import { generateXtotp } from "../otp";
 import type { LoginOptions, LoginResponse } from "./types.js";
 
 export const SPORTS_TRACKER_API = "https://api.sports-tracker.com";

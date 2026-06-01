@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { getWorkouts, getOwnWorkouts } from "./index.js";
-import type { HttpClient } from "../http/index.js";
+import type { HttpClient } from "../http";
 
 function mockClient(data: unknown): HttpClient {
   return {

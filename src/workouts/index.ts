@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import type { HttpClient } from "../http/index.js";
+import type { HttpClient } from "../http";
 import {GetOwnWorkoutsParams, GetWorkoutsParams, WorkoutsResponse} from "./types.js";
 
 export async function getWorkouts(
