@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { getWorkouts, getOwnWorkouts } from "./index.js";
+import { getWorkout, getWorkouts, getOwnWorkouts } from "./index.js";
+import {
+  WorkoutAdditionalData,
+  WorkoutExtensionName,
+} from "./types.js";
 import type { HttpClient } from "../http";
 
 function mockClient(data: unknown): HttpClient {
@@ -71,6 +75,59 @@ describe("getOwnWorkouts", () => {
     const payload = { workouts: [{ id: "xyz" }] };
     const client = mockClient(payload);
     const result = await getOwnWorkouts(client);
+
+    expect(result).toEqual(payload);
+  });
+});
+
+describe("getWorkout", () => {
+  it("calls the correct URL with default extensions and additionalData", async () => {
+    const client = mockClient({ payload: {} });
+    await getWorkout(client, "johndoe", "abc123");
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v2/workouts/johndoe/abc123/combined",
+      {
+        query: {
+          extensions: "SummaryExtension,CompetitionHeaderExtension",
+          additionalData: "achievements,photos,videos,comments,user_reacted",
+        },
+      },
+    );
+  });
+
+  it("encodes special characters in username and workoutKey", async () => {
+    const client = mockClient({});
+    await getWorkout(client, "john doe", "key/with/slashes");
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v2/workouts/john%20doe/key%2Fwith%2Fslashes/combined",
+      expect.anything(),
+    );
+  });
+
+  it("forwards custom extensions and additionalData", async () => {
+    const client = mockClient({});
+    await getWorkout(client, "johndoe", "abc123", {
+      extensions: [WorkoutExtensionName.Dive, WorkoutExtensionName.Weather],
+      additionalData: [WorkoutAdditionalData.Comments],
+    });
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v2/workouts/johndoe/abc123/combined",
+      {
+        query: {
+          extensions: "DiveExtension,WeatherExtension",
+          additionalData: "comments",
+        },
+      },
+    );
+  });
+
+  it("returns the response data", async () => {
+    const payload = { error: null, payload: { key: "abc123" }, metadata: {} };
+    const client = mockClient(payload);
+    const result = await getWorkout(client, "johndoe", "abc123");
 
     expect(result).toEqual(payload);
   });

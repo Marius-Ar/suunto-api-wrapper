@@ -11,6 +11,33 @@ export interface GetOwnWorkoutsParams {
   limit?: number;
 }
 
+/** Valid values for the `extensions` query param on the single-workout endpoint. */
+export enum WorkoutExtensionName {
+  Dive = "DiveExtension",
+  JumpRope = "JumpRopeExtension",
+  Summary = "SummaryExtension",
+  Swimming = "SwimmingExtension",
+  Weather = "WeatherExtension",
+  Workout = "WorkoutExtension",
+  CompetitionHeader = "CompetitionHeaderExtension",
+}
+
+/** Valid values for the `additionalData` query param on the single-workout endpoint. */
+export enum WorkoutAdditionalData {
+  Achievements = "achievements",
+  Photos = "photos",
+  Videos = "videos",
+  Comments = "comments",
+  UserReacted = "user_reacted",
+}
+
+export interface GetWorkoutParams {
+  /** Extensions to include in the response. Defaults to `[Summary, CompetitionHeader]`. */
+  extensions?: WorkoutExtensionName[];
+  /** Extra data blocks to include. Defaults to all five values. */
+  additionalData?: WorkoutAdditionalData[];
+}
+
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
 /** GPS coordinate: x = longitude, y = latitude. */
@@ -314,4 +341,10 @@ export interface WorkoutsResponse {
     workoutcount: string;
     until: string;
   };
+}
+
+export interface WorkoutResponse {
+  error: string | null;
+  payload: Workout;
+  metadata: Record<string, unknown>;
 }

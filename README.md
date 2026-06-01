@@ -82,6 +82,7 @@ payload, typed to the real API response shape (an envelope of
 | ------------------ | ------------------------------ | ----------------------------------------- |
 | `suunto.workouts`  | `.own(params?)`                | your own workouts                         |
 |                    | `.public(username, params?)`   | a user's public workouts                  |
+|                    | `.byKey(username, key, params?)` | a single workout (public, or your own when authed) |
 | `suunto.users`     | `.byName(username)`            | a user's public profile                   |
 |                    | `.search(terms)`               | search for users                          |
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
@@ -90,6 +91,7 @@ payload, typed to the real API response shape (an envelope of
 // Workouts
 const own         = await suunto.workouts.own({ limit: 20, offset: 0, since: 0 });
 const publicItems = await suunto.workouts.public("someuser", { limit: 40 });
+const single      = await suunto.workouts.byKey("someuser", "workoutKey123");
 
 // Users
 const profile = await suunto.users.byName("someuser");
