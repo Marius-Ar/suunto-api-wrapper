@@ -2,6 +2,9 @@
   "name": "suunto-api-wrapper",
   "version": "1.0.0",
   "description": "Unofficial typed TypeScript client for the Suunto app API (Sports Tracker backend). Not affiliated with or endorsed by Suunto or Sports Tracker.",
+  "repository": {
+    "url": "https://github.com/Marius-Ar/suunto-api-wrapper"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
