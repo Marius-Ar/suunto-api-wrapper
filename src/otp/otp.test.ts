@@ -7,7 +7,7 @@ describe("generateXtotp", () => {
     expect(code).toMatch(/^\d{6}$/);
   });
 
-  it("matches known values", async () => {
+  it("matches known values (locks the algorithm)", async () => {
     const t = 1_700_000_000_000;
     expect(await generateXtotp("test@example.com", t)).toBe("485969");
     expect(await generateXtotp("a@b.com", t)).toBe("155798");
@@ -17,6 +17,13 @@ describe("generateXtotp", () => {
     const t = 1_700_000_000_000;
     expect(await generateXtotp("a@b.com", t)).toBe(
       await generateXtotp("a@b.com", t),
+    );
+  });
+
+  it("differs across accounts", async () => {
+    const t = 1_700_000_000_000;
+    expect(await generateXtotp("a@b.com", t)).not.toBe(
+      await generateXtotp("c@d.com", t),
     );
   });
 });

@@ -1,11 +1,30 @@
 import { defineConfig } from "vitest/config";
+import { playwright } from "@vitest/browser-playwright";
 
-// Default (Node) test run — the fast unit suite over src/.
-// Browser smoke tests live in *.browser.test.ts and run via
-// vitest.browser.config.ts instead.
+const include = ["src/**/*.test.ts"];
+
 export default defineConfig({
   test: {
-    include: ["src/**/*.test.ts"],
-    exclude: ["**/*.browser.test.ts", "node_modules/**"],
+    projects: [
+      {
+        test: {
+          name: "node",
+          environment: "node",
+          include,
+        },
+      },
+      {
+        test: {
+          name: "browser",
+          include,
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
+    ],
   },
 });
