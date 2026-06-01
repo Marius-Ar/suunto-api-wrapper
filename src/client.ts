@@ -59,8 +59,8 @@ export class SuuntoClient {
       baseUrl: baseUrl ?? SPORTS_TRACKER_API,
       headers: { "user-agent": userAgent, ...headers },
       ...rest,
-      beforeRequest: (ctx) => {
-        if (email) ctx.headers["x-totp"] = generateXtotp(email);
+      beforeRequest: async (ctx) => {
+        if (email) ctx.headers["x-totp"] = await generateXtotp(email);
         if (sessionKey) ctx.headers["sttauthorization"] = sessionKey;
       },
     });

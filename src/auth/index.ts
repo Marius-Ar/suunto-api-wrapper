@@ -27,7 +27,7 @@ export async function login(options: LoginOptions): Promise<LoginResponse> {
     body,
     headers: {
       "user-agent": userAgent,
-      "x-totp": generateXtotp(email),
+      "x-totp": await generateXtotp(email),
       "content-type": "application/x-www-form-urlencoded",
     },
   });
