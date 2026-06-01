@@ -1,5 +1,7 @@
 # suunto-api-wrapper
 
+[![npm version](https://img.shields.io/npm/v/suunto-api-wrapper.svg)](https://www.npmjs.com/package/suunto-api-wrapper)
+
 A small, typed TypeScript client for the **Suunto app API** (which is served by
 the Sports Tracker backend at `api.sports-tracker.com`).
 
@@ -34,25 +36,13 @@ If Suunto or Sports Tracker request it, this project will comply.
 
 ## Installation
 
-This package isn't published to npm yet. Install it from source:
-
 ```bash
-git clone <this-repo> suunto-api-wrapper
-cd suunto-api-wrapper
-npm install
-npm run build      # emits ESM + CJS + .d.ts into dist/
+npm install suunto-api-wrapper
 ```
 
-Then consume it from another project (e.g. via a local path or `npm link`):
-
-```jsonc
-// package.json
-{
-  "dependencies": {
-    "suunto-api-wrapper": "file:../suunto-api-wrapper"
-  }
-}
-```
+Requires **Node.js 20+** or any modern browser — it relies on the global
+`fetch` and Web Crypto APIs, so it runs in Node and the browser (e.g. Angular,
+React) with no polyfills.
 
 The package ships both **ESM** and **CommonJS** builds with full type
 declarations, so `import` and `require` both work:
