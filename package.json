@@ -18,14 +18,13 @@
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:node": "vitest run --project node",
+    "test:browser": "vitest run --project browser",
     "test:watch": "vitest"
   },
   "keywords": [],
@@ -34,6 +33,9 @@
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "@vitest/browser": "^4.1.8",
+    "@vitest/browser-playwright": "^4.1.8",
+    "playwright": "^1.60.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
