@@ -24,6 +24,7 @@ export {
   getWorkouts,
   getOwnWorkouts,
   getWorkoutStats,
+  SuuntoActivityType,
   WorkoutsResource,
   type GetWorkoutsParams,
   type GetOwnWorkoutsParams,
