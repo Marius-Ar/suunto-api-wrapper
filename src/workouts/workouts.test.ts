@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getWorkout, getWorkouts, getOwnWorkouts } from "./index.js";
+import { getWorkout, getWorkouts, getOwnWorkouts, getWorkoutStats } from "./index.js";
 import {
   WorkoutAdditionalData,
   WorkoutExtensionName,
@@ -128,6 +128,64 @@ describe("getWorkout", () => {
     const payload = { error: null, payload: { key: "abc123" }, metadata: {} };
     const client = mockClient(payload);
     const result = await getWorkout(client, "johndoe", "abc123");
+
+    expect(result).toEqual(payload);
+  });
+});
+
+describe("getWorkoutStats", () => {
+  it("calls the correct URL", async () => {
+    const client = mockClient({ error: null, payload: [], metadata: {} });
+    await getWorkoutStats(client, "johndoe");
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/johndoe/stats",
+    );
+  });
+
+  it("encodes special characters in username", async () => {
+    const client = mockClient({});
+    await getWorkoutStats(client, "john doe");
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/john%20doe/stats",
+    );
+  });
+
+  it("returns the response data", async () => {
+    const payload = {
+      error: null,
+      payload: {
+        totalDistanceSum: 236110,
+        totalTimeSum: 57565.209,
+        totalEnergyConsumptionSum: 8927,
+        totalNumberOfWorkoutsSum: 16,
+        totalDays: 10,
+        allStats: [
+          {
+            _id: 99,
+            totalDistance: 123392,
+            totalTime: 25037.366,
+            energyConsumption: 3547,
+            numberOfWorkouts: 9,
+            maxDepth: 0,
+          },
+        ],
+        allActualStats: [
+          {
+            _id: 11,
+            totalDistance: 5832,
+            totalTime: 4529.619,
+            energyConsumption: 797,
+            numberOfWorkouts: 1,
+            maxDepth: 0,
+          },
+        ],
+      },
+      metadata: { ts: "1780695054942" },
+    };
+    const client = mockClient(payload);
+    const result = await getWorkoutStats(client, "johndoe");
 
     expect(result).toEqual(payload);
   });

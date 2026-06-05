@@ -348,3 +348,49 @@ export interface WorkoutResponse {
   payload: Workout;
   metadata: Record<string, unknown>;
 }
+
+// ─── Stats ───────────────────────────────────────────────────────────────────
+
+/** Aggregated totals for a single activity type. */
+export interface WorkoutStatsEntry {
+  /** Suunto activity type ID this entry aggregates. */
+  _id: number;
+  /** Metres. */
+  totalDistance: number;
+  /** Seconds. */
+  totalTime: number;
+  /** Kilocalories. */
+  energyConsumption: number;
+  /** Number of workouts of this activity. */
+  numberOfWorkouts: number;
+  /** Metres. Only meaningful for dives. */
+  maxDepth: number;
+}
+
+export interface WorkoutStats {
+  /** Sum of distances across all activities, in metres. */
+  totalDistanceSum: number;
+  /** Sum of times across all activities, in seconds. */
+  totalTimeSum: number;
+  /** Sum of energy consumption across all activities, in kilocalories. */
+  totalEnergyConsumptionSum: number;
+  /** Total workout count across all activities. */
+  totalNumberOfWorkoutsSum: number;
+  /** Number of distinct days that have at least one workout. */
+  totalDays: number;
+  /**
+   * Per-activity aggregates, restricted to a curated set of activity types
+   * (the ones the official UI surfaces as headline cards).
+   */
+  allStats: WorkoutStatsEntry[];
+  /** Per-activity aggregates covering every activity type the user has recorded. */
+  allActualStats: WorkoutStatsEntry[];
+}
+
+export interface WorkoutStatsResponse {
+  error: string | null;
+  payload: WorkoutStats;
+  metadata: {
+    ts: string;
+  };
+}
