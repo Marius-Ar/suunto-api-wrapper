@@ -1,6 +1,7 @@
 # suunto-api-wrapper
 
 [![npm version](https://img.shields.io/npm/v/suunto-api-wrapper.svg)](https://www.npmjs.com/package/suunto-api-wrapper)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Marius-Ar_suunto-api-wrapper&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Marius-Ar_suunto-api-wrapper)
 
 A small, typed TypeScript client for the **Suunto mobile app API** the same
 backend the Suunto phone app talks to (served by Sports Tracker at
