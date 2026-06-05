@@ -9,6 +9,7 @@ import {
   WorkoutExtensionName,
   WorkoutResponse,
   WorkoutsResponse,
+  WorkoutStatsResponse,
 } from "./types.js";
 
 const DEFAULT_WORKOUT_EXTENSIONS: WorkoutExtensionName[] = [
@@ -77,6 +78,20 @@ export async function getWorkout(
   return res.data;
 }
 
+/**
+ * Aggregated workout stats per activity for a user. Unauthenticated — no
+ * session required.
+ */
+export async function getWorkoutStats(
+  client: HttpClient,
+  username: string,
+): Promise<WorkoutStatsResponse> {
+  const res = await client.get<WorkoutStatsResponse>(
+    `/apiserver/v1/workouts/${encodeURIComponent(username)}/stats`,
+  );
+  return res.data;
+}
+
 /** Workout endpoints, bound to an {@link HttpClient}. Accessed via `suunto.workouts`. */
 export class WorkoutsResource {
   constructor(private readonly client: HttpClient) {}
@@ -101,5 +116,13 @@ export class WorkoutsResource {
     params?: GetWorkoutParams,
   ): Promise<WorkoutResponse> {
     return getWorkout(this.client, username, workoutKey, params);
+  }
+
+  /**
+   * Aggregated workout stats per activity for the given user. Works
+   * unauthenticated.
+   */
+  stats(username: string): Promise<WorkoutStatsResponse> {
+    return getWorkoutStats(this.client, username);
   }
 }

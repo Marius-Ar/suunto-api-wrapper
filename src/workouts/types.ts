@@ -11,6 +11,130 @@ export interface GetOwnWorkoutsParams {
   limit?: number;
 }
 
+/** Suunto activity type IDs returned by the API as `activityId` / `_id`. */
+export enum SuuntoActivityType {
+  WALKING = 0,
+  RUNNING = 1,
+  CYCLING = 2,
+  CROSS_COUNTRY_SKIING = 3,
+  OTHER_1 = 4,
+  OTHER_2 = 5,
+  OTHER_3 = 6,
+  OTHER_4 = 7,
+  OTHER_5 = 8,
+  OTHER_6 = 9,
+  MOUNTAIN_BIKING = 10,
+  HIKING = 11,
+  ROLLER_SKATING = 12,
+  DOWNHILL_SKIING = 13,
+  PADDLING = 14,
+  ROWING = 15,
+  GOLF = 16,
+  INDOOR = 17,
+  PARKOUR = 18,
+  BALLGAMES = 19,
+  OUTDOOR_GYM = 20,
+  SWIMMING = 21,
+  TRAIL_RUNNING = 22,
+  GYM = 23,
+  NORDIC_WALKING = 24,
+  HORSEBACK_RIDING = 25,
+  MOTOR_SPORTS = 26,
+  SKATEBOARDING = 27,
+  WATER_SPORTS = 28,
+  CLIMBING = 29,
+  SNOWBOARDING = 30,
+  SKI_TOURING = 31,
+  FITNESS_CLASS = 32,
+  SOCCER = 33,
+  TENNIS = 34,
+  BASKETBALL = 35,
+  BADMINTON = 36,
+  BASEBALL = 37,
+  VOLLEYBALL = 38,
+  AMERICAN_FOOTBALL = 39,
+  TABLE_TENNIS = 40,
+  RACQUETBALL = 41,
+  SQUASH = 42,
+  FLOORBALL = 43,
+  HANDBALL = 44,
+  SOFTBALL = 45,
+  BOWLING = 46,
+  CRICKET = 47,
+  RUGBY = 48,
+  ICE_SKATING = 49,
+  ICE_HOCKEY = 50,
+  YOGA = 51,
+  INDOOR_CYCLING = 52,
+  TREADMILL = 53,
+  CROSSFIT = 54,
+  CROSSTRAINER = 55,
+  ROLLER_SKIING = 56,
+  INDOOR_ROWING = 57,
+  STRETCHING = 58,
+  TRACK_AND_FIELD = 59,
+  ORIENTEERING = 60,
+  SUP = 61,
+  COMBAT_SPORTS = 62,
+  KETTLEBELL = 63,
+  DANCING = 64,
+  SNOWSHOEING = 65,
+  FRISBEE_GOLF = 66,
+  FUTSAL = 67,
+  MULTISPORT = 68,
+  AEROBICS = 69,
+  TREKKING = 70,
+  SAILING = 71,
+  KAYAKING = 72,
+  CIRCUIT_TRAINING = 73,
+  TRIATHLON = 74,
+  PADEL = 75,
+  CHEERLEADING = 76,
+  BOXING = 77,
+  SCUBADIVING = 78,
+  FREEDIVING = 79,
+  ADVENTURE_RACING = 80,
+  GYMNASTICS = 81,
+  CANOEING = 82,
+  MOUNTAINEERING = 83,
+  TELEMARKSKIING = 84,
+  OPENWATER_SWIMMING = 85,
+  WINDSURFING = 86,
+  KITESURFING_KITING = 87,
+  PARAGLIDING = 88,
+  SNORKELING = 90,
+  SURFING = 91,
+  SWIMRUN = 92,
+  DUATHLON = 93,
+  AQUATHLON = 94,
+  OBSTACLE_RACING = 95,
+  FISHING = 96,
+  HUNTING = 97,
+  GRAVEL_CYCLING = 99,
+  MERMAIDING = 100,
+  SPEARFISHING = 101,
+  JUMP_ROPE = 102,
+  TRACK_RUNNING = 103,
+  CALISTHENICS = 104,
+  E_BIKING = 105,
+  E_MTB = 106,
+  BACKCOUNTRY_SKIING = 107,
+  WHEELCHAIR = 108,
+  HAND_CYCLING = 109,
+  SPLIT_BOARDING = 110,
+  BIATHLON = 111,
+  MEDITATION = 112,
+  FIELD_HOCKEY = 113,
+  CYCLOCROSS = 114,
+  VERTICAL_RUN = 115,
+  SKI_MOUNTAINEERING = 116,
+  SKATE_SKIING = 117,
+  CLASSIC_SKIING = 118,
+  CHORES = 119,
+  PILATES = 120,
+  NEW_YOGA = 121,
+}
+
 /** Valid values for the `extensions` query param on the single-workout endpoint. */
 export enum WorkoutExtensionName {
   Dive = "DiveExtension",
@@ -272,8 +396,7 @@ export type WorkoutExtension =
 export interface Workout {
   username: string;
   sharingFlags: number;
-  /** Suunto activity type ID (e.g. 2 = cycling, 11 = trail running, 21 = pool swim, 36 = gym, 99 = other). */
-  activityId: number;
+  activityId: SuuntoActivityType;
   key: string;
   startTime: number;
   stopTime: number;
@@ -347,4 +470,50 @@ export interface WorkoutResponse {
   error: string | null;
   payload: Workout;
   metadata: Record<string, unknown>;
+}
+
+// ─── Stats ───────────────────────────────────────────────────────────────────
+
+/** Aggregated totals for a single activity type. */
+export interface WorkoutStatsEntry {
+  /** Suunto activity type ID this entry aggregates. */
+  _id: SuuntoActivityType;
+  /** Metres. */
+  totalDistance: number;
+  /** Seconds. */
+  totalTime: number;
+  /** Kilocalories. */
+  energyConsumption: number;
+  /** Number of workouts of this activity. */
+  numberOfWorkouts: number;
+  /** Metres. Only meaningful for dives. */
+  maxDepth: number;
+}
+
+export interface WorkoutStats {
+  /** Sum of distances across all activities, in metres. */
+  totalDistanceSum: number;
+  /** Sum of times across all activities, in seconds. */
+  totalTimeSum: number;
+  /** Sum of energy consumption across all activities, in kilocalories. */
+  totalEnergyConsumptionSum: number;
+  /** Total workout count across all activities. */
+  totalNumberOfWorkoutsSum: number;
+  /** Number of distinct days that have at least one workout. */
+  totalDays: number;
+  /**
+   * Per-activity aggregates, restricted to a curated set of activity types
+   * (the ones the official UI surfaces as headline cards).
+   */
+  allStats: WorkoutStatsEntry[];
+  /** Per-activity aggregates covering every activity type the user has recorded. */
+  allActualStats: WorkoutStatsEntry[];
+}
+
+export interface WorkoutStatsResponse {
+  error: string | null;
+  payload: WorkoutStats;
+  metadata: {
+    ts: string;
+  };
 }
