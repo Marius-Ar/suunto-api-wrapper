@@ -95,6 +95,10 @@ payload, typed to the real API response shape (an envelope of
 | `suunto.users`     | `.byName(username)`            | a user's public profile                   |
 |                    | `.search(terms)`               | search for users                          |
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
+| `suunto.wellness`  | `.sleep(params?)`              | sleep summaries (247)                     |
+|                    | `.sleepStages(params?)`        | per‑stage sleep intervals (247)           |
+|                    | `.recovery(params?)`           | recovery balance + stress state (247)     |
+|                    | `.activity(params?)`           | daily activity samples (247)              |
 
 ```ts
 // Workouts
@@ -112,7 +116,22 @@ const matches = await suunto.users.search("john");
 
 // Gear
 const gear = await suunto.gear.latest("someuser", { allTypes: true });
+
+// 247 wellness data — sleep, recovery, activity
+const sleep   = await suunto.wellness.sleep({ since: 0 });        // since = epoch ms; 0 returns all
+const stages  = await suunto.wellness.sleepStages({ since: 0 });
+const recov   = await suunto.wellness.recovery();                 // omit `since` to fetch the default window
+const daily   = await suunto.wellness.activity();
 ```
+
+#### What is 247 service?
+
+The Suunto app exposes a second service at `247.sports-tracker.com` (separate
+from `api.sports-tracker.com`) for **always‑on, around‑the‑clock body data**
+collected by the watch outside recorded workouts.
+
+The 247 client lives at `suunto.http247` if you need a raw escape hatch (same
+auth headers). Override the host with the `baseUrl247` client option.
 
 The response payloads are fully typed. For example, workout `extensions` are a
 discriminated union you can narrow on:

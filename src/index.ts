@@ -80,4 +80,28 @@ export {
   type GearResponse,
 } from "./gear/index.js";
 
+export {
+  getSleepExport,
+  getSleepStagesExport,
+  getRecoveryExport,
+  getActivityExport,
+  WellnessResource,
+  SPORTS_TRACKER_247_API,
+  type ExportParams,
+  type ExportEntry,
+  type SleepSummaryData,
+  type SleepStage,
+  type SleepStageData,
+  type RecoveryData,
+  type ActivityData,
+  type SleepSummary,
+  type SleepStageInterval,
+  type RecoveryEntry,
+  type ActivityEntry,
+  type SleepExportResponse,
+  type SleepStagesExportResponse,
+  type RecoveryExportResponse,
+  type ActivityExportResponse,
+} from "./wellness/index.js";
+
 export { SuuntoClient, type SuuntoClientOptions } from "./client.js";

@@ -29,6 +29,25 @@ describe("HttpClient", () => {
     expect(res.data).toEqual({ ok: true });
   });
 
+  it("parses application/x-ndjson into an array, one parsed JSON per line", async () => {
+    const body =
+      '{"a":1}\n{"a":2}\r\n\n{"a":3}\n';
+    const customFetch = () =>
+      Promise.resolve(
+        new Response(body, {
+          status: 200,
+          headers: { "content-type": "application/x-ndjson" },
+        }),
+      );
+
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      fetch: customFetch as unknown as typeof fetch,
+    });
+    const res = await client.get<Array<{ a: number }>>("/stream");
+    expect(res.data).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }]);
+  });
+
   it("does not bind a caller-supplied fetch (it may already be wrapped)", async () => {
     const seen: { thisArg: unknown }[] = [];
     const customFetch = function (this: unknown, _url: string) {
