@@ -30,7 +30,10 @@ export interface SearchUser {
   createdDate: number;
   lastModified: number;
   lastLogin: number;
-  realName: string;
+  /** Absent on some legacy accounts. */
+  realName?: string;
+  /** Free-form profile bio. */
+  description?: string;
   /** ISO 3166-1 country code. Mostly alpha-2, but legacy records may use alpha-3 (e.g. "FRA"). */
   country?: string;
   city?: string;
@@ -38,6 +41,8 @@ export interface SearchUser {
   uuid: string;
   imageKey?: string;
   profileImageUrl?: string;
+  coverImageKey?: string;
+  coverImageUrl?: string;
   showLocale: boolean;
   defaultBinaryStorageLocation: string;
   currentBlobStorageLocation: string;

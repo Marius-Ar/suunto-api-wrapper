@@ -1,3 +1,5 @@
+import type { SearchUser } from "../users/types.js";
+
 // ─── Query params ────────────────────────────────────────────────────────────
 
 export interface GetWorkoutsParams {
@@ -8,6 +10,20 @@ export interface GetWorkoutsParams {
 export interface GetOwnWorkoutsParams {
   since?: number;
   offset?: number;
+  limit?: number;
+}
+
+/** Bounding-box query for {@link getWorkoutsWithin}. All coords in decimal degrees. */
+export interface GetWorkoutsWithinParams {
+  /** South latitude of the bounding box. */
+  lowerLat: number;
+  /** West longitude of the bounding box. */
+  lowerLng: number;
+  /** North latitude of the bounding box. */
+  upperLat: number;
+  /** East longitude of the bounding box. */
+  upperLng: number;
+  /** Max results. Defaults to 50. */
   limit?: number;
 }
 
@@ -424,7 +440,8 @@ export interface Workout {
   tss: TssEntry;
   tssList: TssEntry[];
   suuntoTags: string[];
-  clientCalculatedAchievements: ClientCalculatedAchievements;
+  /** Absent on some workouts (e.g. when the user has no achievements yet). */
+  clientCalculatedAchievements?: ClientCalculatedAchievements;
   workoutKey: string;
   visibilityFacebook: boolean;
   visibilityTwitter: boolean;
@@ -453,6 +470,16 @@ export interface Workout {
   comments?: WorkoutComment[];
   /** Only present when reactionCount > 0. */
   reactions?: WorkoutReaction[];
+  /** Owner's display name. Returned on feed-style endpoints (e.g. `within`). */
+  fullname?: string;
+  /** Owner's profile picture URL. Returned on feed-style endpoints. */
+  userPhoto?: string;
+  /** Owner's cover photo URL. Returned on feed-style endpoints. */
+  coverPhoto?: string;
+  /** Free-text achievement labels (e.g. "Fastest time on this route"). */
+  achievements?: string[];
+  /** Average power, watts. Mirrors `SummaryExtension.avgPower` on feed responses. */
+  avgPower?: number;
 }
 
 // ─── Response envelope ───────────────────────────────────────────────────────
@@ -470,6 +497,20 @@ export interface WorkoutResponse {
   error: string | null;
   payload: Workout;
   metadata: Record<string, unknown>;
+}
+
+/** Single item from the {@link getWorkoutsWithin} feed: owner + workout. */
+export interface WorkoutsWithinItem {
+  user: SearchUser;
+  workout: Workout;
+}
+
+export interface WorkoutsWithinResponse {
+  error: string | null;
+  payload: WorkoutsWithinItem[];
+  metadata: {
+    workoutcount: string;
+  };
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────────────
