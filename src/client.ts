@@ -76,7 +76,10 @@ export class SuuntoClient {
       baseUrl: baseUrl247 ?? SPORTS_TRACKER_247_API,
       headers: sharedHeaders,
       ...rest,
-      beforeRequest,
+      beforeRequest: async (ctx) => {
+        await beforeRequest(ctx);
+        ctx.headers["accept"] = "*/*";
+      },
     });
 
     this.workouts = new WorkoutsResource(this.http);
