@@ -5,10 +5,12 @@ import {
   GetOwnWorkoutsParams,
   GetWorkoutParams,
   GetWorkoutsParams,
+  GetWorkoutsWithinParams,
   WorkoutAdditionalData,
   WorkoutExtensionName,
   WorkoutResponse,
   WorkoutsResponse,
+  WorkoutsWithinResponse,
   WorkoutStatsResponse,
 } from "./types.js";
 
@@ -79,6 +81,30 @@ export async function getWorkout(
 }
 
 /**
+ * Public workouts whose center position falls inside the given geographic
+ * bounding box. Used by the "explore nearby" map view. Unauthenticated.
+ */
+export async function getWorkoutsWithin(
+  client: HttpClient,
+  params: GetWorkoutsWithinParams,
+): Promise<WorkoutsWithinResponse> {
+  const { lowerLat, lowerLng, upperLat, upperLng, limit = 50 } = params;
+  const res = await client.get<WorkoutsWithinResponse>(
+    "/apiserver/v1/workouts/public/within",
+    {
+      query: {
+        lowerlat: lowerLat,
+        lowerlng: lowerLng,
+        upperlat: upperLat,
+        upperlng: upperLng,
+        limit,
+      },
+    },
+  );
+  return res.data;
+}
+
+/**
  * Aggregated workout stats per activity for a user. Unauthenticated — no
  * session required.
  */
@@ -124,5 +150,10 @@ export class WorkoutsResource {
    */
   stats(username: string): Promise<WorkoutStatsResponse> {
     return getWorkoutStats(this.client, username);
+  }
+
+  /** Public workouts whose center falls inside a geographic bounding box. */
+  within(params: GetWorkoutsWithinParams): Promise<WorkoutsWithinResponse> {
+    return getWorkoutsWithin(this.client, params);
   }
 }

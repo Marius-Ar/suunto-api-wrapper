@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { getWorkout, getWorkouts, getOwnWorkouts, getWorkoutStats } from "./index.js";
+import {
+  getWorkout,
+  getWorkouts,
+  getOwnWorkouts,
+  getWorkoutStats,
+  getWorkoutsWithin,
+} from "./index.js";
 import {
   WorkoutAdditionalData,
   WorkoutExtensionName,
@@ -128,6 +134,63 @@ describe("getWorkout", () => {
     const payload = { error: null, payload: { key: "abc123" }, metadata: {} };
     const client = mockClient(payload);
     const result = await getWorkout(client, "johndoe", "abc123");
+
+    expect(result).toEqual(payload);
+  });
+});
+
+describe("getWorkoutsWithin", () => {
+  const box = {
+    lowerLat: 45.7,
+    lowerLng: 4.75,
+    upperLat: 45.85,
+    upperLng: 4.95,
+  };
+
+  it("calls the correct URL with the bounding box and default limit", async () => {
+    const client = mockClient({ error: null, payload: [], metadata: { workoutcount: "0" } });
+    await getWorkoutsWithin(client, box);
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/public/within",
+      {
+        query: {
+          lowerlat: 45.7,
+          lowerlng: 4.75,
+          upperlat: 45.85,
+          upperlng: 4.95,
+          limit: 50,
+        },
+      },
+    );
+  });
+
+  it("forwards a custom limit", async () => {
+    const client = mockClient({});
+    await getWorkoutsWithin(client, { ...box, limit: 10 });
+
+    expect(client.get).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/public/within",
+      {
+        query: {
+          lowerlat: 45.7,
+          lowerlng: 4.75,
+          upperlat: 45.85,
+          upperlng: 4.95,
+          limit: 10,
+        },
+      },
+    );
+  });
+
+  it("returns the response data", async () => {
+    const payload = {
+      error: null,
+      payload: [{ user: { username: "u" }, workout: { key: "w" } }],
+      metadata: { workoutcount: "1" },
+    };
+    const client = mockClient(payload);
+    const result = await getWorkoutsWithin(client, box);
 
     expect(result).toEqual(payload);
   });

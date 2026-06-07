@@ -91,6 +91,7 @@ payload, typed to the real API response shape (an envelope of
 |                    | `.public(username, params?)`   | a user's public workouts                  |
 |                    | `.byKey(username, key, params?)` | a single workout (public, or your own when authed) |
 |                    | `.stats(username)`             | aggregated workout stats per activity     |
+|                    | `.within(box)`                 | public workouts inside a lat/lng bounding box |
 | `suunto.users`     | `.byName(username)`            | a user's public profile                   |
 |                    | `.search(terms)`               | search for users                          |
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
@@ -101,6 +102,9 @@ const own         = await suunto.workouts.own({ limit: 20, offset: 0, since: 0 }
 const publicItems = await suunto.workouts.public("someuser", { limit: 40 });
 const single      = await suunto.workouts.byKey("someuser", "workoutKey123");
 const stats       = await suunto.workouts.stats("someuser");
+const nearby      = await suunto.workouts.within({
+  lowerLat: 45.70, lowerLng: 4.75, upperLat: 45.85, upperLng: 4.95, limit: 50,
+});
 
 // Users
 const profile = await suunto.users.byName("someuser");
