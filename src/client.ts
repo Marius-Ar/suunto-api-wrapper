@@ -1,15 +1,10 @@
-import { HttpClient, type HttpClientOptions } from "./http/index.js";
-import { generateXtotp } from "./otp/index.js";
-import {
-  login,
-  sessionTokenFrom,
-  SPORTS_TRACKER_API,
-  DEFAULT_USER_AGENT,
-  type LoginOptions,
-} from "./auth/index.js";
-import { WorkoutsResource } from "./workouts/index.js";
-import { UsersResource } from "./users/index.js";
-import { GearResource } from "./gear/index.js";
+import {HttpClient, type HttpClientOptions} from "./http";
+import {generateXtotp} from "./otp";
+import {DEFAULT_USER_AGENT, login, type LoginOptions, sessionTokenFrom, SPORTS_TRACKER_API,} from "./auth";
+import {WorkoutsResource} from "./workouts";
+import {UsersResource} from "./users";
+import {GearResource} from "./gear";
+import {SPORTS_TRACKER_247_API, WellnessResource} from "./wellness";
 
 export interface SuuntoClientOptions
   extends Omit<HttpClientOptions, "beforeRequest"> {
@@ -22,6 +17,8 @@ export interface SuuntoClientOptions
   /** Session key from login — sent as the `Sttauthorization` header. */
   sessionKey?: string;
   userAgent?: string;
+  /** Override host for the 247 service (sleep/recovery/activity). */
+  baseUrl247?: string;
 }
 
 /**
@@ -40,9 +37,13 @@ export class SuuntoClient {
   /** Session key in use, if the client was authenticated. */
   readonly sessionKey?: string;
 
+  /** Dedicated HTTP client for the 247 host (sleep/recovery/activity). */
+  readonly http247: HttpClient;
+
   readonly workouts: WorkoutsResource;
   readonly users: UsersResource;
   readonly gear: GearResource;
+  readonly wellness: WellnessResource;
 
   constructor(options: SuuntoClientOptions) {
     const {
@@ -50,24 +51,38 @@ export class SuuntoClient {
       sessionKey,
       userAgent = DEFAULT_USER_AGENT,
       baseUrl,
+      baseUrl247,
       headers,
       ...rest
     } = options;
 
     this.sessionKey = sessionKey;
+    const beforeRequest = async (ctx: {
+      headers: Record<string, string>;
+    }) => {
+      if (email) ctx.headers["x-totp"] = await generateXtotp(email);
+      if (sessionKey) ctx.headers["sttauthorization"] = sessionKey;
+    };
+    const sharedHeaders = { "user-agent": userAgent, ...headers };
+
     this.http = new HttpClient({
       baseUrl: baseUrl ?? SPORTS_TRACKER_API,
-      headers: { "user-agent": userAgent, ...headers },
+      headers: sharedHeaders,
       ...rest,
-      beforeRequest: async (ctx) => {
-        if (email) ctx.headers["x-totp"] = await generateXtotp(email);
-        if (sessionKey) ctx.headers["sttauthorization"] = sessionKey;
-      },
+      beforeRequest,
+    });
+
+    this.http247 = new HttpClient({
+      baseUrl: baseUrl247 ?? SPORTS_TRACKER_247_API,
+      headers: sharedHeaders,
+      ...rest,
+      beforeRequest,
     });
 
     this.workouts = new WorkoutsResource(this.http);
     this.users = new UsersResource(this.http);
     this.gear = new GearResource(this.http);
+    this.wellness = new WellnessResource(this.http247);
   }
 
   /** Log in with email/password and return an authenticated client. */

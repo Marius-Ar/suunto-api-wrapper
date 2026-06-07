@@ -177,6 +177,16 @@ async function parseBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type") ?? "";
   const text = await response.text();
   if (!text) return undefined;
+  if (
+    contentType.includes("application/x-ndjson") ||
+    contentType.includes("application/jsonl") ||
+    contentType.includes("application/x-jsonlines")
+  ) {
+    return text
+      .split(/\r?\n/)
+      .filter((line) => line.length > 0)
+      .map((line) => JSON.parse(line));
+  }
   if (contentType.includes("application/json")) {
     try {
       return JSON.parse(text);
