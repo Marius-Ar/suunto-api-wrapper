@@ -81,10 +81,6 @@ export {
 } from "./gear/index.js";
 
 export {
-  getSleepExport,
-  getSleepStagesExport,
-  getRecoveryExport,
-  getActivityExport,
   WellnessResource,
   SPORTS_TRACKER_247_API,
   type ExportParams,
