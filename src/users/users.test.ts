@@ -1,12 +1,6 @@
-import {describe, expect, it, vi} from "vitest";
-import type {HttpClient} from "../http";
+import {describe, expect, it} from "vitest";
 import {UsersResource} from "./index";
-
-function mockClient(data: unknown): HttpClient {
-  return {
-    get: vi.fn().mockResolvedValue({ data, status: 200, headers: new Headers() }),
-  } as unknown as HttpClient;
-}
+import {mockClient} from "../testing.js";
 
 function users(data: unknown) {
   const client = mockClient(data);

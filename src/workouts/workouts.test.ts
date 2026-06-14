@@ -1,16 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { WorkoutsResource } from "./index.js";
 import {
   WorkoutAdditionalData,
   WorkoutExtensionName,
 } from "./types.js";
-import type { HttpClient } from "../http";
-
-function mockClient(data: unknown): HttpClient {
-  return {
-    get: vi.fn().mockResolvedValue({ data, status: 200, headers: new Headers() }),
-  } as unknown as HttpClient;
-}
+import { mockClient } from "../testing.js";
 
 function workouts(data: unknown) {
   const client = mockClient(data);
