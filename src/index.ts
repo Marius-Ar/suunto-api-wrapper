@@ -21,10 +21,6 @@ export {
 } from "./auth/index.js";
 
 export {
-  getWorkouts,
-  getOwnWorkouts,
-  getWorkoutStats,
-  getWorkoutsWithin,
   SuuntoActivityType,
   WorkoutsResource,
   type GetWorkoutsParams,
@@ -62,8 +58,6 @@ export {
 } from "./workouts/index.js";
 
 export {
-  getUserByName,
-  searchUsers,
   UsersResource,
   type UserProfile,
   type UserProfileResponse,
@@ -73,7 +67,6 @@ export {
 } from "./users/index.js";
 
 export {
-  getLatestGear,
   GearResource,
   type GetLatestGearParams,
   type GearSummary,
@@ -81,10 +74,6 @@ export {
 } from "./gear/index.js";
 
 export {
-  getSleepExport,
-  getSleepStagesExport,
-  getRecoveryExport,
-  getActivityExport,
   WellnessResource,
   SPORTS_TRACKER_247_API,
   type ExportParams,

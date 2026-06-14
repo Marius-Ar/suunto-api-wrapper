@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  getActivityExport,
-  getRecoveryExport,
-  getSleepExport,
-  getSleepStagesExport,
-} from "./index.js";
+import { WellnessResource } from "./index.js";
 import type { HttpClient } from "../http";
 
 function mockClient(data: unknown): HttpClient {
@@ -13,10 +8,15 @@ function mockClient(data: unknown): HttpClient {
   } as unknown as HttpClient;
 }
 
-describe("getSleepExport", () => {
+function wellness(data: unknown) {
+  const client = mockClient(data);
+  return { client, resource: new WellnessResource(client) };
+}
+
+describe("WellnessResource.sleep", () => {
   it("calls /v1/sleep/export with no query when since is omitted", async () => {
-    const client = mockClient([]);
-    await getSleepExport(client);
+    const { client, resource } = wellness([]);
+    await resource.sleep();
 
     expect(client.get).toHaveBeenCalledWith("/v1/sleep/export", {
       query: undefined,
@@ -24,8 +24,8 @@ describe("getSleepExport", () => {
   });
 
   it("forwards since as query when provided (including 0)", async () => {
-    const client = mockClient([]);
-    await getSleepExport(client, { since: 0 });
+    const { client, resource } = wellness([]);
+    await resource.sleep({ since: 0 });
 
     expect(client.get).toHaveBeenCalledWith("/v1/sleep/export", {
       query: { since: 0 },
@@ -54,17 +54,17 @@ describe("getSleepExport", () => {
         },
       },
     ];
-    const client = mockClient(rows);
-    const result = await getSleepExport(client, { since: 1700000000000 });
+    const { resource } = wellness(rows);
+    const result = await resource.sleep({ since: 1700000000000 });
 
     expect(result).toEqual(rows);
   });
 });
 
-describe("getSleepStagesExport", () => {
+describe("WellnessResource.sleepStages", () => {
   it("calls /v1/sleepstages/export with since", async () => {
-    const client = mockClient([]);
-    await getSleepStagesExport(client, { since: 1700000000000 });
+    const { client, resource } = wellness([]);
+    await resource.sleepStages({ since: 1700000000000 });
 
     expect(client.get).toHaveBeenCalledWith("/v1/sleepstages/export", {
       query: { since: 1700000000000 },
@@ -78,16 +78,16 @@ describe("getSleepStagesExport", () => {
         entryData: { stage: "LIGHT", duration: 150 },
       },
     ];
-    const client = mockClient(rows);
-    const result = await getSleepStagesExport(client);
+    const { resource } = wellness(rows);
+    const result = await resource.sleepStages();
     expect(result).toEqual(rows);
   });
 });
 
-describe("getRecoveryExport", () => {
+describe("WellnessResource.recovery", () => {
   it("calls /v1/recovery/export with no query when since omitted", async () => {
-    const client = mockClient([]);
-    await getRecoveryExport(client);
+    const { client, resource } = wellness([]);
+    await resource.recovery();
 
     expect(client.get).toHaveBeenCalledWith("/v1/recovery/export", {
       query: undefined,
@@ -101,16 +101,16 @@ describe("getRecoveryExport", () => {
         entryData: { balance: 0.71, stressState: 1 },
       },
     ];
-    const client = mockClient(rows);
-    const result = await getRecoveryExport(client);
+    const { resource } = wellness(rows);
+    const result = await resource.recovery();
     expect(result).toEqual(rows);
   });
 });
 
-describe("getActivityExport", () => {
+describe("WellnessResource.activity", () => {
   it("calls /v1/activity/export with since", async () => {
-    const client = mockClient([]);
-    await getActivityExport(client, { since: 1700000000000 });
+    const { client, resource } = wellness([]);
+    await resource.activity({ since: 1700000000000 });
 
     expect(client.get).toHaveBeenCalledWith("/v1/activity/export", {
       query: { since: 1700000000000 },
@@ -124,8 +124,8 @@ describe("getActivityExport", () => {
         entryData: { hr: 1.3333334, stepCount: 18, energyConsumption: 4186.8 },
       },
     ];
-    const client = mockClient(rows);
-    const result = await getActivityExport(client);
+    const { resource } = wellness(rows);
+    const result = await resource.activity();
     expect(result).toEqual(rows);
   });
 });
