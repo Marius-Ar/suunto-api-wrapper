@@ -1,84 +1,75 @@
 export * from "./types.js";
 
-import type { HttpClient } from "../http";
-import type {
-  ActivityExportResponse,
-  ExportParams,
-  RecoveryExportResponse,
-  SleepExportResponse,
-  SleepStagesExportResponse,
+import { endpoint, HttpClient, type HttpClientOptions } from "../http";
+import { AuthSession } from "../auth";
+import {
+  SPORTS_TRACKER_247_API,
+  type ActivityExportResponse,
+  type ExportParams,
+  type RecoveryExportResponse,
+  type SleepExportResponse,
+  type SleepStagesExportResponse,
 } from "./types.js";
 
-function exportQuery(params: ExportParams) {
-  return params.since == null ? undefined : {since: params.since};
-}
+const exportQuery = (params: ExportParams) =>
+  params.since == null ? undefined : { since: params.since };
 
-/** Sleep summaries from the 247 service. */
-export async function getSleepExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<SleepExportResponse> {
-  const res = await client.get<SleepExportResponse>("/v1/sleep/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
-}
-
-/** Per-stage sleep intervals from the 247 service. */
-export async function getSleepStagesExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<SleepStagesExportResponse> {
-  const res = await client.get<SleepStagesExportResponse>(
-    "/v1/sleepstages/export",
-    { query: exportQuery(params) },
-  );
-  return res.data;
-}
-
-/** Recovery entries (balance + stress state) from the 247 service. */
-export async function getRecoveryExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<RecoveryExportResponse> {
-  const res = await client.get<RecoveryExportResponse>("/v1/recovery/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
-}
-
-/** Daily activity entries from the 247 service. */
-export async function getActivityExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<ActivityExportResponse> {
-  const res = await client.get<ActivityExportResponse>("/v1/activity/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
+export interface WellnessResourceOptions
+  extends Omit<HttpClientOptions, "beforeRequest" | "baseUrl"> {
+  auth: AuthSession;
+  baseUrl?: string;
 }
 
 /**
  * Endpoints served by `https://247.sports-tracker.com` (sleep, recovery,
- * activity). Bound to a dedicated {@link HttpClient} configured against that
- * host. Accessed via `suunto.wellness`.
+ * activity). Owns its own {@link HttpClient} configured against that host,
+ * including the wellness-specific wildcard accept header. Accessed via
+ * `suunto.wellness`.
  */
 export class WellnessResource {
-  constructor(private readonly client: HttpClient) {}
+  readonly http: HttpClient;
 
-  sleep(params?: ExportParams): Promise<SleepExportResponse> {
-    return getSleepExport(this.client, params);
+  constructor(options: WellnessResourceOptions) {
+    const { auth, baseUrl, ...rest } = options;
+    this.http = new HttpClient({
+      ...rest,
+      baseUrl: baseUrl ?? SPORTS_TRACKER_247_API,
+      beforeRequest: async (ctx) => {
+        await auth.applyTo(ctx);
+        ctx.headers["accept"] = "*/*";
+      },
+    });
   }
 
-  sleepStages(params?: ExportParams): Promise<SleepStagesExportResponse> {
-    return getSleepStagesExport(this.client, params);
+  /** Sleep summaries from the 247 service. */
+  sleep(params: ExportParams = {}): Promise<SleepExportResponse> {
+    return endpoint<SleepExportResponse>(this.http, {
+      path: "/v1/sleep/export",
+      query: exportQuery(params),
+    });
   }
 
-  recovery(params?: ExportParams): Promise<RecoveryExportResponse> {
-    return getRecoveryExport(this.client, params);
+  /** Per-stage sleep intervals from the 247 service. */
+  sleepStages(params: ExportParams = {}): Promise<SleepStagesExportResponse> {
+    return endpoint<SleepStagesExportResponse>(this.http, {
+      path: "/v1/sleepstages/export",
+      query: exportQuery(params),
+    });
   }
 
-  activity(params?: ExportParams): Promise<ActivityExportResponse> {
-    return getActivityExport(this.client, params);
+  /** Recovery entries (balance + stress state) from the 247 service. */
+  recovery(params: ExportParams = {}): Promise<RecoveryExportResponse> {
+    return endpoint<RecoveryExportResponse>(this.http, {
+      path: "/v1/recovery/export",
+      query: exportQuery(params),
+    });
+  }
+
+  /** Daily activity entries from the 247 service. */
+  activity(params: ExportParams = {}): Promise<ActivityExportResponse> {
+    return endpoint<ActivityExportResponse>(this.http, {
+      path: "/v1/activity/export",
+      query: exportQuery(params),
+    });
   }
 }

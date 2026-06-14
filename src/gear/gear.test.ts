@@ -1,17 +1,16 @@
-import { describe, expect, it, vi } from "vitest";
-import { getLatestGear } from "./index.js";
-import type { HttpClient } from "../http";
+import { describe, expect, it } from "vitest";
+import { GearResource } from "./index.js";
+import { mockClient } from "../testing.js";
 
-function mockClient(data: unknown): HttpClient {
-  return {
-    get: vi.fn().mockResolvedValue({ data, status: 200, headers: new Headers() }),
-  } as unknown as HttpClient;
+function gear(data: unknown) {
+  const client = mockClient(data);
+  return { client, resource: new GearResource(client) };
 }
 
-describe("getLatestGear", () => {
+describe("GearResource.latest", () => {
   it("calls the correct URL with default params", async () => {
-    const client = mockClient({ payload: [] });
-    await getLatestGear(client, "johndoe");
+    const { client, resource } = gear({ payload: [] });
+    await resource.latest("johndoe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/gear/johndoe/latest",
@@ -20,8 +19,8 @@ describe("getLatestGear", () => {
   });
 
   it("encodes special characters in username", async () => {
-    const client = mockClient({});
-    await getLatestGear(client, "john doe");
+    const { client, resource } = gear({});
+    await resource.latest("john doe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/gear/john%20doe/latest",
@@ -30,8 +29,8 @@ describe("getLatestGear", () => {
   });
 
   it("forwards allTypes=false", async () => {
-    const client = mockClient({});
-    await getLatestGear(client, "johndoe", { allTypes: false });
+    const { client, resource } = gear({});
+    await resource.latest("johndoe", { allTypes: false });
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/gear/johndoe/latest",
@@ -41,8 +40,8 @@ describe("getLatestGear", () => {
 
   it("returns the response data", async () => {
     const payload = { error: null, payload: [{ serialNumber: "abc" }] };
-    const client = mockClient(payload);
-    const result = await getLatestGear(client, "johndoe");
+    const { resource } = gear(payload);
+    const result = await resource.latest("johndoe");
 
     expect(result).toEqual(payload);
   });

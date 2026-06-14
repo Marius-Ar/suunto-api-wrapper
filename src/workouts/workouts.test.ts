@@ -1,27 +1,20 @@
-import { describe, expect, it, vi } from "vitest";
-import {
-  getWorkout,
-  getWorkouts,
-  getOwnWorkouts,
-  getWorkoutStats,
-  getWorkoutsWithin,
-} from "./index.js";
+import { describe, expect, it } from "vitest";
+import { WorkoutsResource } from "./index.js";
 import {
   WorkoutAdditionalData,
   WorkoutExtensionName,
 } from "./types.js";
-import type { HttpClient } from "../http";
+import { mockClient } from "../testing.js";
 
-function mockClient(data: unknown): HttpClient {
-  return {
-    get: vi.fn().mockResolvedValue({ data, status: 200, headers: new Headers() }),
-  } as unknown as HttpClient;
+function workouts(data: unknown) {
+  const client = mockClient(data);
+  return { client, resource: new WorkoutsResource(client) };
 }
 
-describe("getWorkouts", () => {
+describe("WorkoutsResource.public", () => {
   it("calls the correct URL with default params", async () => {
-    const client = mockClient({ workouts: [] });
-    await getWorkouts(client, "johndoe");
+    const { client, resource } = workouts({ workouts: [] });
+    await resource.public("johndoe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/johndoe/public",
@@ -30,8 +23,8 @@ describe("getWorkouts", () => {
   });
 
   it("encodes special characters in username", async () => {
-    const client = mockClient({});
-    await getWorkouts(client, "john doe");
+    const { client, resource } = workouts({});
+    await resource.public("john doe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/john%20doe/public",
@@ -40,8 +33,8 @@ describe("getWorkouts", () => {
   });
 
   it("forwards custom params", async () => {
-    const client = mockClient({});
-    await getWorkouts(client, "johndoe", { limit: 10, sortonst: false });
+    const { client, resource } = workouts({});
+    await resource.public("johndoe", { limit: 10, sortonst: false });
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/johndoe/public",
@@ -51,45 +44,47 @@ describe("getWorkouts", () => {
 
   it("returns the response data", async () => {
     const payload = { workouts: [{ id: "abc" }] };
-    const client = mockClient(payload);
-    const result = await getWorkouts(client, "johndoe");
+    const { resource } = workouts(payload);
+    const result = await resource.public("johndoe");
 
     expect(result).toEqual(payload);
   });
 });
 
-describe("getOwnWorkouts", () => {
+describe("WorkoutsResource.own", () => {
   it("calls the correct URL with default params", async () => {
-    const client = mockClient({ workouts: [] });
-    await getOwnWorkouts(client);
+    const { client, resource } = workouts({ workouts: [] });
+    await resource.own();
 
     expect(client.get).toHaveBeenCalledWith(
-      "/apiserver/v1/workouts?offset=0&limit=50&since=0",
+      "/apiserver/v1/workouts",
+      { query: { offset: 0, limit: 50, since: 0 } },
     );
   });
 
   it("forwards custom params", async () => {
-    const client = mockClient({});
-    await getOwnWorkouts(client, { offset: 10, limit: 20, since: 1700000000 });
+    const { client, resource } = workouts({});
+    await resource.own({ offset: 10, limit: 20, since: 1700000000 });
 
     expect(client.get).toHaveBeenCalledWith(
-      "/apiserver/v1/workouts?offset=10&limit=20&since=1700000000",
+      "/apiserver/v1/workouts",
+      { query: { offset: 10, limit: 20, since: 1700000000 } },
     );
   });
 
   it("returns the response data", async () => {
     const payload = { workouts: [{ id: "xyz" }] };
-    const client = mockClient(payload);
-    const result = await getOwnWorkouts(client);
+    const { resource } = workouts(payload);
+    const result = await resource.own();
 
     expect(result).toEqual(payload);
   });
 });
 
-describe("getWorkout", () => {
+describe("WorkoutsResource.byKey", () => {
   it("calls the correct URL with default extensions and additionalData", async () => {
-    const client = mockClient({ payload: {} });
-    await getWorkout(client, "johndoe", "abc123");
+    const { client, resource } = workouts({ payload: {} });
+    await resource.byKey("johndoe", "abc123");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v2/workouts/johndoe/abc123/combined",
@@ -103,8 +98,8 @@ describe("getWorkout", () => {
   });
 
   it("encodes special characters in username and workoutKey", async () => {
-    const client = mockClient({});
-    await getWorkout(client, "john doe", "key/with/slashes");
+    const { client, resource } = workouts({});
+    await resource.byKey("john doe", "key/with/slashes");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v2/workouts/john%20doe/key%2Fwith%2Fslashes/combined",
@@ -113,8 +108,8 @@ describe("getWorkout", () => {
   });
 
   it("forwards custom extensions and additionalData", async () => {
-    const client = mockClient({});
-    await getWorkout(client, "johndoe", "abc123", {
+    const { client, resource } = workouts({});
+    await resource.byKey("johndoe", "abc123", {
       extensions: [WorkoutExtensionName.Dive, WorkoutExtensionName.Weather],
       additionalData: [WorkoutAdditionalData.Comments],
     });
@@ -132,14 +127,14 @@ describe("getWorkout", () => {
 
   it("returns the response data", async () => {
     const payload = { error: null, payload: { key: "abc123" }, metadata: {} };
-    const client = mockClient(payload);
-    const result = await getWorkout(client, "johndoe", "abc123");
+    const { resource } = workouts(payload);
+    const result = await resource.byKey("johndoe", "abc123");
 
     expect(result).toEqual(payload);
   });
 });
 
-describe("getWorkoutsWithin", () => {
+describe("WorkoutsResource.within", () => {
   const box = {
     lowerLat: 45.7,
     lowerLng: 4.75,
@@ -148,8 +143,12 @@ describe("getWorkoutsWithin", () => {
   };
 
   it("calls the correct URL with the bounding box and default limit", async () => {
-    const client = mockClient({ error: null, payload: [], metadata: { workoutcount: "0" } });
-    await getWorkoutsWithin(client, box);
+    const { client, resource } = workouts({
+      error: null,
+      payload: [],
+      metadata: { workoutcount: "0" },
+    });
+    await resource.within(box);
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/public/within",
@@ -166,8 +165,8 @@ describe("getWorkoutsWithin", () => {
   });
 
   it("forwards a custom limit", async () => {
-    const client = mockClient({});
-    await getWorkoutsWithin(client, { ...box, limit: 10 });
+    const { client, resource } = workouts({});
+    await resource.within({ ...box, limit: 10 });
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/public/within",
@@ -189,17 +188,21 @@ describe("getWorkoutsWithin", () => {
       payload: [{ user: { username: "u" }, workout: { key: "w" } }],
       metadata: { workoutcount: "1" },
     };
-    const client = mockClient(payload);
-    const result = await getWorkoutsWithin(client, box);
+    const { resource } = workouts(payload);
+    const result = await resource.within(box);
 
     expect(result).toEqual(payload);
   });
 });
 
-describe("getWorkoutStats", () => {
+describe("WorkoutsResource.stats", () => {
   it("calls the correct URL", async () => {
-    const client = mockClient({ error: null, payload: [], metadata: {} });
-    await getWorkoutStats(client, "johndoe");
+    const { client, resource } = workouts({
+      error: null,
+      payload: [],
+      metadata: {},
+    });
+    await resource.stats("johndoe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/johndoe/stats",
@@ -207,8 +210,8 @@ describe("getWorkoutStats", () => {
   });
 
   it("encodes special characters in username", async () => {
-    const client = mockClient({});
-    await getWorkoutStats(client, "john doe");
+    const { client, resource } = workouts({});
+    await resource.stats("john doe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/john%20doe/stats",
@@ -247,8 +250,8 @@ describe("getWorkoutStats", () => {
       },
       metadata: { ts: "1780695054942" },
     };
-    const client = mockClient(payload);
-    const result = await getWorkoutStats(client, "johndoe");
+    const { resource } = workouts(payload);
+    const result = await resource.stats("johndoe");
 
     expect(result).toEqual(payload);
   });

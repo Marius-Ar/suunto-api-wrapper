@@ -1,7 +1,8 @@
 export * from "./types.js";
+export * from "./session.js";
 
 import { HttpClient } from "../http";
-import { generateXtotp } from "../otp";
+import { AuthSession } from "./session.js";
 import type { LoginOptions, LoginResponse } from "./types.js";
 
 export const SPORTS_TRACKER_API = "https://api.sports-tracker.com";
@@ -23,13 +24,15 @@ export async function login(options: LoginOptions): Promise<LoginResponse> {
   const http = new HttpClient({ baseUrl, fetch: fetchImpl, timeoutMs });
   const body = new URLSearchParams({ l: email, p: password, version });
 
+  const headers: Record<string, string> = {
+    "user-agent": userAgent,
+    "content-type": "application/x-www-form-urlencoded",
+  };
+  await new AuthSession({ email }).applyTo({ headers });
+
   const response = await http.post<LoginResponse>("/apiserver/v1/login2", {
     body,
-    headers: {
-      "user-agent": userAgent,
-      "x-totp": await generateXtotp(email),
-      "content-type": "application/x-www-form-urlencoded",
-    },
+    headers,
   });
 
   return response.data;

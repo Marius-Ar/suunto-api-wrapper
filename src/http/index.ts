@@ -1,4 +1,5 @@
 export * from "./types.js";
+export { endpoint, type EndpointSpec } from "./endpoint.js";
 
 import type {HttpClientOptions, HttpResponse, Query, RequestBody, RequestContext, RequestOptions,} from "./types.js";
 import {HttpError} from "./types.js";
@@ -73,7 +74,7 @@ export class HttpClient {
     let lastError: unknown;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        const response = await this.attempt<T>(method, url, options);
+        const response = await this.attempt(method, url, options);
         if (
           !response.ok &&
           retryable &&
@@ -94,7 +95,7 @@ export class HttpClient {
     throw lastError;
   }
 
-  private async attempt<T>(
+  private async attempt(
     method: string,
     url: string,
     options: RequestOptions,

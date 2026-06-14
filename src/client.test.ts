@@ -1,22 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SuuntoClient } from "./client.js";
-
-type Captured = { url: string; headers: Record<string, string> };
-
-function captureFetch(captured: Captured[], body = "[]", contentType = "application/x-ndjson") {
-  return ((url: string, init?: RequestInit) => {
-    const headers: Record<string, string> = {};
-    const raw = (init?.headers ?? {}) as Record<string, string>;
-    for (const [k, v] of Object.entries(raw)) headers[k.toLowerCase()] = v;
-    captured.push({ url, headers });
-    return Promise.resolve(
-      new Response(body, {
-        status: 200,
-        headers: { "content-type": contentType },
-      }),
-    );
-  }) as unknown as typeof fetch;
-}
+import { captureFetch, type Captured } from "./testing.js";
 
 describe("SuuntoClient http247", () => {
   it("forces accept: */* on 247 requests", async () => {
