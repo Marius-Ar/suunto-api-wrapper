@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-import { getUserByName, searchUsers } from "./index.js";
-import type { HttpClient } from "../http";
+import {describe, expect, it, vi} from "vitest";
+import type {HttpClient} from "../http";
+import {UsersResource} from "./index";
 
 function mockClient(data: unknown): HttpClient {
   return {
@@ -8,17 +8,22 @@ function mockClient(data: unknown): HttpClient {
   } as unknown as HttpClient;
 }
 
+function users(data: unknown) {
+  const client = mockClient(data);
+  return {client, resource: new UsersResource(client)}
+}
+
 describe("getUserByName", () => {
   it("calls the correct URL", async () => {
-    const client = mockClient({ payload: {} });
-    await getUserByName(client, "johndoe");
+    const {client, resource} = users([]);
+    await resource.byName("johndoe");
 
     expect(client.get).toHaveBeenCalledWith("/apiserver/v1/user/name/johndoe");
   });
 
   it("encodes special characters in username", async () => {
-    const client = mockClient({});
-    await getUserByName(client, "john doe");
+    const {client, resource} = users([]);
+    await resource.byName("john doe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/user/name/john%20doe",
@@ -27,8 +32,8 @@ describe("getUserByName", () => {
 
   it("returns the response data", async () => {
     const payload = { error: null, payload: { username: "johndoe" } };
-    const client = mockClient(payload);
-    const result = await getUserByName(client, "johndoe");
+    const {resource} = users(payload);
+    const result = await resource.byName("johndoe");
 
     expect(result).toEqual(payload);
   });
@@ -36,15 +41,15 @@ describe("getUserByName", () => {
 
 describe("searchUsers", () => {
   it("calls the correct URL", async () => {
-    const client = mockClient({ payload: [] });
-    await searchUsers(client, "tttt");
+    const {client, resource} = users([]);
+    await resource.search("tttt");
 
     expect(client.get).toHaveBeenCalledWith("/apiserver/v1/user/search/tttt");
   });
 
   it("encodes special characters in the search terms", async () => {
-    const client = mockClient({});
-    await searchUsers(client, "john doe");
+    const {client, resource} = users([]);
+    await resource.search("john doe");
 
     expect(client.get).toHaveBeenCalledWith(
       "/apiserver/v1/user/search/john%20doe",
@@ -56,8 +61,8 @@ describe("searchUsers", () => {
       error: null,
       payload: [{ connection: "STRANGER", user: { username: "tttt" }, workout: null }],
     };
-    const client = mockClient(payload);
-    const result = await searchUsers(client, "tttt");
+    const {resource} = users(payload);
+    const result = await resource.search("tttt");
 
     expect(result).toEqual(payload);
   });

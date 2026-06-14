@@ -62,8 +62,6 @@ export {
 } from "./workouts/index.js";
 
 export {
-  getUserByName,
-  searchUsers,
   UsersResource,
   type UserProfile,
   type UserProfileResponse,
