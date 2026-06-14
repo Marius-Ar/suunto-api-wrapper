@@ -57,7 +57,8 @@ describe("WorkoutsResource.own", () => {
     await resource.own();
 
     expect(client.get).toHaveBeenCalledWith(
-      "/apiserver/v1/workouts?offset=0&limit=50&since=0",
+      "/apiserver/v1/workouts",
+      { query: { offset: 0, limit: 50, since: 0 } },
     );
   });
 
@@ -66,7 +67,8 @@ describe("WorkoutsResource.own", () => {
     await resource.own({ offset: 10, limit: 20, since: 1700000000 });
 
     expect(client.get).toHaveBeenCalledWith(
-      "/apiserver/v1/workouts?offset=10&limit=20&since=1700000000",
+      "/apiserver/v1/workouts",
+      { query: { offset: 10, limit: 20, since: 1700000000 } },
     );
   });
 

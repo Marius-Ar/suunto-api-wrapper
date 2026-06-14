@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import type { HttpClient } from "../http";
+import { endpoint, type HttpClient } from "../http";
 import {
   GetOwnWorkoutsParams,
   GetWorkoutParams,
@@ -32,90 +32,74 @@ export class WorkoutsResource {
   constructor(private readonly client: HttpClient) {}
 
   /** The authenticated user's own workouts. */
-  async own(params: GetOwnWorkoutsParams = {}): Promise<WorkoutsResponse> {
-    const { offset = 0, limit = 50, since = 0 } = params;
-
-    const searchParams = new URLSearchParams();
-    searchParams.append("offset", String(offset));
-    searchParams.append("limit", String(limit));
-    searchParams.append("since", String(since));
-
-    const res = await this.client.get<WorkoutsResponse>(
-      `/apiserver/v1/workouts?${searchParams.toString()}`,
-    );
-    return res.data;
+  own(params: GetOwnWorkoutsParams = {}): Promise<WorkoutsResponse> {
+    return endpoint<WorkoutsResponse>(this.client, {
+      path: "/apiserver/v1/workouts",
+      query: {
+        offset: params.offset ?? 0,
+        limit: params.limit ?? 50,
+        since: params.since ?? 0,
+      },
+    });
   }
 
   /** A given user's public workouts. */
-  async public(
+  public(
     username: string,
     params: GetWorkoutsParams = {},
   ): Promise<WorkoutsResponse> {
-    const { limit = 40, sortonst = true } = params;
-    const res = await this.client.get<WorkoutsResponse>(
-      `/apiserver/v1/workouts/${encodeURIComponent(username)}/public`,
-      { query: { limit, sortonst } },
-    );
-    return res.data;
+    return endpoint<WorkoutsResponse>(this.client, {
+      path: `/apiserver/v1/workouts/${encodeURIComponent(username)}/public`,
+      query: { limit: params.limit ?? 40, sortonst: params.sortonst ?? true },
+    });
   }
 
   /**
    * A single workout by username and workout key. Works for any public workout
    * and, when the client is authenticated as the owner, for private ones too.
    */
-  async byKey(
+  byKey(
     username: string,
     workoutKey: string,
     params: GetWorkoutParams = {},
   ): Promise<WorkoutResponse> {
-    const {
-      extensions = DEFAULT_WORKOUT_EXTENSIONS,
-      additionalData = DEFAULT_WORKOUT_ADDITIONAL_DATA,
-    } = params;
-
-    const res = await this.client.get<WorkoutResponse>(
-      `/apiserver/v2/workouts/${encodeURIComponent(username)}/${encodeURIComponent(workoutKey)}/combined`,
-      {
-        query: {
-          extensions: extensions.join(","),
-          additionalData: additionalData.join(","),
-        },
+    const extensions = params.extensions ?? DEFAULT_WORKOUT_EXTENSIONS;
+    const additionalData = params.additionalData ?? DEFAULT_WORKOUT_ADDITIONAL_DATA;
+    return endpoint<WorkoutResponse>(this.client, {
+      path: `/apiserver/v2/workouts/${encodeURIComponent(username)}/${encodeURIComponent(workoutKey)}/combined`,
+      query: {
+        extensions: extensions.join(","),
+        additionalData: additionalData.join(","),
       },
-    );
-    return res.data;
+    });
   }
 
   /**
    * Aggregated workout stats per activity for the given user. Works
    * unauthenticated.
    */
-  async stats(username: string): Promise<WorkoutStatsResponse> {
-    const res = await this.client.get<WorkoutStatsResponse>(
-      `/apiserver/v1/workouts/${encodeURIComponent(username)}/stats`,
-    );
-    return res.data;
+  stats(username: string): Promise<WorkoutStatsResponse> {
+    return endpoint<WorkoutStatsResponse>(this.client, {
+      path: `/apiserver/v1/workouts/${encodeURIComponent(username)}/stats`,
+    });
   }
 
   /**
    * Public workouts whose center position falls inside the given geographic
    * bounding box. Used by the "explore nearby" map view. Unauthenticated.
    */
-  async within(
+  within(
     params: GetWorkoutsWithinParams,
   ): Promise<WorkoutsWithinResponse> {
-    const { lowerLat, lowerLng, upperLat, upperLng, limit = 50 } = params;
-    const res = await this.client.get<WorkoutsWithinResponse>(
-      "/apiserver/v1/workouts/public/within",
-      {
-        query: {
-          lowerlat: lowerLat,
-          lowerlng: lowerLng,
-          upperlat: upperLat,
-          upperlng: upperLng,
-          limit,
-        },
+    return endpoint<WorkoutsWithinResponse>(this.client, {
+      path: "/apiserver/v1/workouts/public/within",
+      query: {
+        lowerlat: params.lowerLat,
+        lowerlng: params.lowerLng,
+        upperlat: params.upperLat,
+        upperlng: params.upperLng,
+        limit: params.limit ?? 50,
       },
-    );
-    return res.data;
+    });
   }
 }
