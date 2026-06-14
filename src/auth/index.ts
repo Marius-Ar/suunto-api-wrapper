@@ -1,4 +1,5 @@
 export * from "./types.js";
+export * from "./session.js";
 
 import { HttpClient } from "../http";
 import { generateXtotp } from "../otp";

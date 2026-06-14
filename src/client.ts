@@ -1,6 +1,5 @@
 import {HttpClient, type HttpClientOptions} from "./http";
-import {generateXtotp} from "./otp";
-import {DEFAULT_USER_AGENT, login, type LoginOptions, sessionTokenFrom, SPORTS_TRACKER_API,} from "./auth";
+import {AuthSession, DEFAULT_USER_AGENT, login, type LoginOptions, sessionTokenFrom, SPORTS_TRACKER_API,} from "./auth";
 import {WorkoutsResource} from "./workouts";
 import {UsersResource} from "./users";
 import {GearResource} from "./gear";
@@ -57,19 +56,14 @@ export class SuuntoClient {
     } = options;
 
     this.sessionKey = sessionKey;
-    const beforeRequest = async (ctx: {
-      headers: Record<string, string>;
-    }) => {
-      if (email) ctx.headers["x-totp"] = await generateXtotp(email);
-      if (sessionKey) ctx.headers["sttauthorization"] = sessionKey;
-    };
+    const auth = new AuthSession({ email, sessionKey });
     const sharedHeaders = { "user-agent": userAgent, ...headers };
 
     this.http = new HttpClient({
       baseUrl: baseUrl ?? SPORTS_TRACKER_API,
       headers: sharedHeaders,
       ...rest,
-      beforeRequest,
+      beforeRequest: (ctx) => auth.applyTo(ctx),
     });
 
     this.http247 = new HttpClient({
@@ -77,7 +71,7 @@ export class SuuntoClient {
       headers: sharedHeaders,
       ...rest,
       beforeRequest: async (ctx) => {
-        await beforeRequest(ctx);
+        await auth.applyTo(ctx);
         ctx.headers["accept"] = "*/*";
       },
     });
