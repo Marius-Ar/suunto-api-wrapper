@@ -21,10 +21,6 @@ export {
 } from "./auth/index.js";
 
 export {
-  getWorkouts,
-  getOwnWorkouts,
-  getWorkoutStats,
-  getWorkoutsWithin,
   SuuntoActivityType,
   WorkoutsResource,
   type GetWorkoutsParams,
@@ -71,7 +67,6 @@ export {
 } from "./users/index.js";
 
 export {
-  getLatestGear,
   GearResource,
   type GetLatestGearParams,
   type GearSummary,
