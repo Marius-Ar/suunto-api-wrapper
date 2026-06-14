@@ -1,35 +1,89 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { WellnessResource } from "./index.js";
-import type { HttpClient } from "../http";
+import { AuthSession } from "../auth";
 
-function mockClient(data: unknown): HttpClient {
-  return {
-    get: vi.fn().mockResolvedValue({ data, status: 200, headers: new Headers() }),
-  } as unknown as HttpClient;
+type Captured = { url: string; headers: Record<string, string> };
+
+function captureFetch(
+  captured: Captured[],
+  body: string,
+  contentType = "application/x-ndjson",
+) {
+  return ((url: string, init?: RequestInit) => {
+    const headers: Record<string, string> = {};
+    const raw = (init?.headers ?? {}) as Record<string, string>;
+    for (const [k, v] of Object.entries(raw)) headers[k.toLowerCase()] = v;
+    captured.push({ url, headers });
+    return Promise.resolve(
+      new Response(body, {
+        status: 200,
+        headers: { "content-type": contentType },
+      }),
+    );
+  }) as unknown as typeof fetch;
 }
 
-function wellness(data: unknown) {
-  const client = mockClient(data);
-  return { client, resource: new WellnessResource(client) };
+function ndjson(rows: unknown[]): string {
+  return rows.map((r) => JSON.stringify(r)).join("\n");
 }
+
+function wellness(rows: unknown[]) {
+  const captured: Captured[] = [];
+  const resource = new WellnessResource({
+    auth: new AuthSession({ sessionKey: "sess-key" }),
+    fetch: captureFetch(captured, ndjson(rows)),
+  });
+  return { captured, resource };
+}
+
+describe("WellnessResource transport", () => {
+  it("sets accept: */* on every request", async () => {
+    const { captured, resource } = wellness([]);
+    await resource.sleep();
+    expect(captured[0].headers["accept"]).toBe("*/*");
+  });
+
+  it("forwards the session key via sttauthorization", async () => {
+    const { captured, resource } = wellness([]);
+    await resource.sleep();
+    expect(captured[0].headers["sttauthorization"]).toBe("sess-key");
+  });
+
+  it("targets the 247 host by default", async () => {
+    const { captured, resource } = wellness([]);
+    await resource.sleep();
+    expect(captured[0].url.startsWith("https://247.sports-tracker.com")).toBe(
+      true,
+    );
+  });
+
+  it("honors baseUrl override", async () => {
+    const captured: Captured[] = [];
+    const resource = new WellnessResource({
+      auth: new AuthSession({ sessionKey: "sess-key" }),
+      baseUrl: "https://247.example.test",
+      fetch: captureFetch(captured, "[]"),
+    });
+    await resource.activity();
+    expect(captured[0].url).toBe("https://247.example.test/v1/activity/export");
+  });
+});
 
 describe("WellnessResource.sleep", () => {
   it("calls /v1/sleep/export with no query when since is omitted", async () => {
-    const { client, resource } = wellness([]);
+    const { captured, resource } = wellness([]);
     await resource.sleep();
-
-    expect(client.get).toHaveBeenCalledWith("/v1/sleep/export", {
-      query: undefined,
-    });
+    expect(captured[0].url).toBe(
+      "https://247.sports-tracker.com/v1/sleep/export",
+    );
   });
 
   it("forwards since as query when provided (including 0)", async () => {
-    const { client, resource } = wellness([]);
+    const { captured, resource } = wellness([]);
     await resource.sleep({ since: 0 });
-
-    expect(client.get).toHaveBeenCalledWith("/v1/sleep/export", {
-      query: { since: 0 },
-    });
+    expect(captured[0].url).toBe(
+      "https://247.sports-tracker.com/v1/sleep/export?since=0",
+    );
   });
 
   it("returns the parsed NDJSON rows", async () => {
@@ -56,19 +110,17 @@ describe("WellnessResource.sleep", () => {
     ];
     const { resource } = wellness(rows);
     const result = await resource.sleep({ since: 1700000000000 });
-
     expect(result).toEqual(rows);
   });
 });
 
 describe("WellnessResource.sleepStages", () => {
   it("calls /v1/sleepstages/export with since", async () => {
-    const { client, resource } = wellness([]);
+    const { captured, resource } = wellness([]);
     await resource.sleepStages({ since: 1700000000000 });
-
-    expect(client.get).toHaveBeenCalledWith("/v1/sleepstages/export", {
-      query: { since: 1700000000000 },
-    });
+    expect(captured[0].url).toBe(
+      "https://247.sports-tracker.com/v1/sleepstages/export?since=1700000000000",
+    );
   });
 
   it("returns rows typed as stage intervals", async () => {
@@ -86,12 +138,11 @@ describe("WellnessResource.sleepStages", () => {
 
 describe("WellnessResource.recovery", () => {
   it("calls /v1/recovery/export with no query when since omitted", async () => {
-    const { client, resource } = wellness([]);
+    const { captured, resource } = wellness([]);
     await resource.recovery();
-
-    expect(client.get).toHaveBeenCalledWith("/v1/recovery/export", {
-      query: undefined,
-    });
+    expect(captured[0].url).toBe(
+      "https://247.sports-tracker.com/v1/recovery/export",
+    );
   });
 
   it("returns rows with balance and stressState", async () => {
@@ -109,12 +160,11 @@ describe("WellnessResource.recovery", () => {
 
 describe("WellnessResource.activity", () => {
   it("calls /v1/activity/export with since", async () => {
-    const { client, resource } = wellness([]);
+    const { captured, resource } = wellness([]);
     await resource.activity({ since: 1700000000000 });
-
-    expect(client.get).toHaveBeenCalledWith("/v1/activity/export", {
-      query: { since: 1700000000000 },
-    });
+    expect(captured[0].url).toBe(
+      "https://247.sports-tracker.com/v1/activity/export?since=1700000000000",
+    );
   });
 
   it("returns rows with hr, stepCount, energyConsumption", async () => {

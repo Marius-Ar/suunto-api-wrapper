@@ -3,7 +3,7 @@ import {AuthSession, DEFAULT_USER_AGENT, login, type LoginOptions, sessionTokenF
 import {WorkoutsResource} from "./workouts";
 import {UsersResource} from "./users";
 import {GearResource} from "./gear";
-import {SPORTS_TRACKER_247_API, WellnessResource} from "./wellness";
+import {WellnessResource} from "./wellness";
 
 export interface SuuntoClientOptions
   extends Omit<HttpClientOptions, "beforeRequest"> {
@@ -36,9 +36,6 @@ export class SuuntoClient {
   /** Session key in use, if the client was authenticated. */
   readonly sessionKey?: string;
 
-  /** Dedicated HTTP client for the 247 host (sleep/recovery/activity). */
-  readonly http247: HttpClient;
-
   readonly workouts: WorkoutsResource;
   readonly users: UsersResource;
   readonly gear: GearResource;
@@ -66,20 +63,15 @@ export class SuuntoClient {
       beforeRequest: (ctx) => auth.applyTo(ctx),
     });
 
-    this.http247 = new HttpClient({
-      baseUrl: baseUrl247 ?? SPORTS_TRACKER_247_API,
-      headers: sharedHeaders,
-      ...rest,
-      beforeRequest: async (ctx) => {
-        await auth.applyTo(ctx);
-        ctx.headers["accept"] = "*/*";
-      },
-    });
-
     this.workouts = new WorkoutsResource(this.http);
     this.users = new UsersResource(this.http);
     this.gear = new GearResource(this.http);
-    this.wellness = new WellnessResource(this.http247);
+    this.wellness = new WellnessResource({
+      auth,
+      baseUrl: baseUrl247,
+      headers: sharedHeaders,
+      ...rest,
+    });
   }
 
   /** Log in with email/password and return an authenticated client. */
