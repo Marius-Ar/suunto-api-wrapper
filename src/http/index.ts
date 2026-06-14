@@ -1,4 +1,5 @@
 export * from "./types.js";
+export { endpoint, type EndpointSpec } from "./endpoint.js";
 
 import type {HttpClientOptions, HttpResponse, Query, RequestBody, RequestContext, RequestOptions,} from "./types.js";
 import {HttpError} from "./types.js";

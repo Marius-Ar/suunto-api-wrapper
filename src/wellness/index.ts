@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import { HttpClient, type HttpClientOptions } from "../http";
+import { endpoint, HttpClient, type HttpClientOptions } from "../http";
 import { AuthSession } from "../auth";
 import {
   SPORTS_TRACKER_247_API,
@@ -11,9 +11,8 @@ import {
   type SleepStagesExportResponse,
 } from "./types.js";
 
-function exportQuery(params: ExportParams) {
-  return params.since == null ? undefined : { since: params.since };
-}
+const exportQuery = (params: ExportParams) =>
+  params.since == null ? undefined : { since: params.since };
 
 export interface WellnessResourceOptions
   extends Omit<HttpClientOptions, "beforeRequest" | "baseUrl"> {
@@ -43,39 +42,34 @@ export class WellnessResource {
   }
 
   /** Sleep summaries from the 247 service. */
-  async sleep(params: ExportParams = {}): Promise<SleepExportResponse> {
-    const res = await this.http.get<SleepExportResponse>("/v1/sleep/export", {
+  sleep(params: ExportParams = {}): Promise<SleepExportResponse> {
+    return endpoint<SleepExportResponse>(this.http, {
+      path: "/v1/sleep/export",
       query: exportQuery(params),
     });
-    return res.data;
   }
 
   /** Per-stage sleep intervals from the 247 service. */
-  async sleepStages(
-    params: ExportParams = {},
-  ): Promise<SleepStagesExportResponse> {
-    const res = await this.http.get<SleepStagesExportResponse>(
-      "/v1/sleepstages/export",
-      { query: exportQuery(params) },
-    );
-    return res.data;
+  sleepStages(params: ExportParams = {}): Promise<SleepStagesExportResponse> {
+    return endpoint<SleepStagesExportResponse>(this.http, {
+      path: "/v1/sleepstages/export",
+      query: exportQuery(params),
+    });
   }
 
   /** Recovery entries (balance + stress state) from the 247 service. */
-  async recovery(params: ExportParams = {}): Promise<RecoveryExportResponse> {
-    const res = await this.http.get<RecoveryExportResponse>(
-      "/v1/recovery/export",
-      { query: exportQuery(params) },
-    );
-    return res.data;
+  recovery(params: ExportParams = {}): Promise<RecoveryExportResponse> {
+    return endpoint<RecoveryExportResponse>(this.http, {
+      path: "/v1/recovery/export",
+      query: exportQuery(params),
+    });
   }
 
   /** Daily activity entries from the 247 service. */
-  async activity(params: ExportParams = {}): Promise<ActivityExportResponse> {
-    const res = await this.http.get<ActivityExportResponse>(
-      "/v1/activity/export",
-      { query: exportQuery(params) },
-    );
-    return res.data;
+  activity(params: ExportParams = {}): Promise<ActivityExportResponse> {
+    return endpoint<ActivityExportResponse>(this.http, {
+      path: "/v1/activity/export",
+      query: exportQuery(params),
+    });
   }
 }
