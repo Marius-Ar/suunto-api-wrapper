@@ -10,52 +10,7 @@ import type {
 } from "./types.js";
 
 function exportQuery(params: ExportParams) {
-  return params.since == null ? undefined : {since: params.since};
-}
-
-/** Sleep summaries from the 247 service. */
-export async function getSleepExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<SleepExportResponse> {
-  const res = await client.get<SleepExportResponse>("/v1/sleep/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
-}
-
-/** Per-stage sleep intervals from the 247 service. */
-export async function getSleepStagesExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<SleepStagesExportResponse> {
-  const res = await client.get<SleepStagesExportResponse>(
-    "/v1/sleepstages/export",
-    { query: exportQuery(params) },
-  );
-  return res.data;
-}
-
-/** Recovery entries (balance + stress state) from the 247 service. */
-export async function getRecoveryExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<RecoveryExportResponse> {
-  const res = await client.get<RecoveryExportResponse>("/v1/recovery/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
-}
-
-/** Daily activity entries from the 247 service. */
-export async function getActivityExport(
-  client: HttpClient,
-  params: ExportParams = {},
-): Promise<ActivityExportResponse> {
-  const res = await client.get<ActivityExportResponse>("/v1/activity/export", {
-    query: exportQuery(params),
-  });
-  return res.data;
+  return params.since == null ? undefined : { since: params.since };
 }
 
 /**
@@ -66,19 +21,40 @@ export async function getActivityExport(
 export class WellnessResource {
   constructor(private readonly client: HttpClient) {}
 
-  sleep(params?: ExportParams): Promise<SleepExportResponse> {
-    return getSleepExport(this.client, params);
+  /** Sleep summaries from the 247 service. */
+  async sleep(params: ExportParams = {}): Promise<SleepExportResponse> {
+    const res = await this.client.get<SleepExportResponse>("/v1/sleep/export", {
+      query: exportQuery(params),
+    });
+    return res.data;
   }
 
-  sleepStages(params?: ExportParams): Promise<SleepStagesExportResponse> {
-    return getSleepStagesExport(this.client, params);
+  /** Per-stage sleep intervals from the 247 service. */
+  async sleepStages(
+    params: ExportParams = {},
+  ): Promise<SleepStagesExportResponse> {
+    const res = await this.client.get<SleepStagesExportResponse>(
+      "/v1/sleepstages/export",
+      { query: exportQuery(params) },
+    );
+    return res.data;
   }
 
-  recovery(params?: ExportParams): Promise<RecoveryExportResponse> {
-    return getRecoveryExport(this.client, params);
+  /** Recovery entries (balance + stress state) from the 247 service. */
+  async recovery(params: ExportParams = {}): Promise<RecoveryExportResponse> {
+    const res = await this.client.get<RecoveryExportResponse>(
+      "/v1/recovery/export",
+      { query: exportQuery(params) },
+    );
+    return res.data;
   }
 
-  activity(params?: ExportParams): Promise<ActivityExportResponse> {
-    return getActivityExport(this.client, params);
+  /** Daily activity entries from the 247 service. */
+  async activity(params: ExportParams = {}): Promise<ActivityExportResponse> {
+    const res = await this.client.get<ActivityExportResponse>(
+      "/v1/activity/export",
+      { query: exportQuery(params) },
+    );
+    return res.data;
   }
 }
