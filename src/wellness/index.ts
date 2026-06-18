@@ -1,6 +1,8 @@
+import { Resource } from "../http/resource";
+
 export * from "./types.js";
 
-import { endpoint, HttpClient, type HttpClientOptions } from "../http";
+import { HttpClient, type HttpClientOptions } from "../http";
 import { AuthSession } from "../auth";
 import {
   SPORTS_TRACKER_247_API,
@@ -26,12 +28,10 @@ export interface WellnessResourceOptions
  * including the wellness-specific wildcard accept header. Accessed via
  * `suunto.wellness`.
  */
-export class WellnessResource {
-  readonly http: HttpClient;
-
+export class WellnessResource extends Resource {
   constructor(options: WellnessResourceOptions) {
     const { auth, baseUrl, ...rest } = options;
-    this.http = new HttpClient({
+    const http = new HttpClient({
       ...rest,
       baseUrl: baseUrl ?? SPORTS_TRACKER_247_API,
       beforeRequest: async (ctx) => {
@@ -39,11 +39,13 @@ export class WellnessResource {
         ctx.headers["accept"] = "*/*";
       },
     });
+
+    super(http);
   }
 
   /** Sleep summaries from the 247 service. */
   sleep(params: ExportParams = {}): Promise<SleepExportResponse> {
-    return endpoint<SleepExportResponse>(this.http, {
+    return this.call<SleepExportResponse>({
       path: "/v1/sleep/export",
       query: exportQuery(params),
     });
@@ -51,7 +53,7 @@ export class WellnessResource {
 
   /** Per-stage sleep intervals from the 247 service. */
   sleepStages(params: ExportParams = {}): Promise<SleepStagesExportResponse> {
-    return endpoint<SleepStagesExportResponse>(this.http, {
+    return this.call<SleepStagesExportResponse>({
       path: "/v1/sleepstages/export",
       query: exportQuery(params),
     });
@@ -59,7 +61,7 @@ export class WellnessResource {
 
   /** Recovery entries (balance + stress state) from the 247 service. */
   recovery(params: ExportParams = {}): Promise<RecoveryExportResponse> {
-    return endpoint<RecoveryExportResponse>(this.http, {
+    return this.call<RecoveryExportResponse>({
       path: "/v1/recovery/export",
       query: exportQuery(params),
     });
@@ -67,7 +69,7 @@ export class WellnessResource {
 
   /** Daily activity entries from the 247 service. */
   activity(params: ExportParams = {}): Promise<ActivityExportResponse> {
-    return endpoint<ActivityExportResponse>(this.http, {
+    return this.call<ActivityExportResponse>({
       path: "/v1/activity/export",
       query: exportQuery(params),
     });
