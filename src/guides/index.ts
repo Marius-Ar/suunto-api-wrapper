@@ -48,7 +48,7 @@ export class GuidesResource extends Resource {
     return res.data;
   }
 
-  async edit(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
+  async update(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
     GuidesResource.checkPngSize(icon);
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
     const res = await this.client.put<GuideUploadResponse>(this.buildGuidePath(guideId), this.getGuideUploadOptions(zippedGuideArray));
