@@ -31,6 +31,14 @@ export interface GuideListResponse {
     }
 }
 
+export interface GuideUploadResponse {
+    error: string | null;
+    payload: Guide;
+    metadata: {
+        ts: string;
+    }
+}
+
 export interface Guide {
     id: string,
     username: string,
