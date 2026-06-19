@@ -33,10 +33,11 @@ export class GuidesResource extends Resource {
       `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`,
       { responseType: "bytes" },
     );
-    return GuidesResource.unpackGuideZip(res.data);
+    const {definition, icon} = await GuidesResource.unpackGuideZip(res.data);
+    return {definition, icon, raw: res.data};
   }
 
-  private static unpackGuideZip(bytes: Uint8Array): Promise<GuideContent> {
+  private static unpackGuideZip(bytes: Uint8Array): Promise<Omit<GuideContent, 'raw'>> {
     return new Promise((resolve, reject) => {
       unzip(bytes, (err, files) => {
         if (err) return reject(err);

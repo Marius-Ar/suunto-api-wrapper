@@ -4,6 +4,7 @@ import {SuuntoActivityType} from "../common/types";
 export interface GuideContent {
   definition: GuideDefinition;
   icon: Uint8Array;
+  raw: Uint8Array;
 }
 
 /**
