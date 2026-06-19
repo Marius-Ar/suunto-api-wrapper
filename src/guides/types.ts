@@ -46,9 +46,9 @@ export interface Guide {
     richText: string,
     "activities": SuuntoActivityType[],
     /** YYYY-MM-DD format */
-    "localDate": "2026-07-04",
+    "localDate": string,
     "usage": string,
-    "pinned": false,
+    "pinned": boolean,
     "externalId": string,
     "ownerId": string,
     "catalogueId": any,  // TODO: Replace with actual type

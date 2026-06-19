@@ -15,7 +15,7 @@ export class GuidesResource extends Resource {
    * Lists SuuntoPlus guides available to the authenticated user. Each entry
    * carries metadata (name, owner, activities, icon/background URLs, ...) but
    * not the guide steps themselves — fetch a specific guide with
-   * {@link byId} to get the parsed guide definition.
+   * {@link get} to get the parsed guide definition.
    */
   list(): Promise<GuideListResponse> {
     return this.call<GuideListResponse>({
@@ -28,7 +28,7 @@ export class GuidesResource extends Resource {
    * `guide.json` (parsed into {@link GuideDefinition}) and `icon.png`
    * (returned as raw bytes).
    */
-  async byId(guideId: string): Promise<GuideContent> {
+  async get(guideId: string): Promise<GuideContent> {
     const res = await this.client.get<Uint8Array>(
       `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`,
       { responseType: "bytes" },
@@ -47,7 +47,7 @@ export class GuidesResource extends Resource {
           const definition = JSON.parse(
             new TextDecoder().decode(guideEntry),
           ) as GuideDefinition;
-          resolve({ definition, icon: iconEntry ?? new Uint8Array() });
+          resolve({ definition, icon: iconEntry });
         } catch (parseErr) {
           reject(parseErr);
         }

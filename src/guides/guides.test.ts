@@ -40,10 +40,10 @@ describe("list", () => {
     });
 });
 
-describe("byId", () => {
+describe("get", () => {
     it("requests the guide file as bytes with an encoded id", async () => {
         const {client, resource} = guides(buildGuideZip());
-        await resource.byId("guide/with spaces");
+        await resource.get("guide/with spaces");
 
         expect(client.get).toHaveBeenCalledWith(
             "/apiserver/v1/suuntoplus/guides/files/guide%2Fwith%20spaces",
@@ -55,7 +55,7 @@ describe("byId", () => {
         const icon = new Uint8Array([1, 2, 3, 4]);
         const {resource} = guides(buildGuideZip(sampleDefinition, icon));
 
-        const content = await resource.byId("abc");
+        const content = await resource.get("abc");
 
         expect(content.definition).toEqual(sampleDefinition);
         expect(content.icon).toEqual(icon);
@@ -64,21 +64,21 @@ describe("byId", () => {
     it("defaults icon to empty bytes when missing", async () => {
         const {resource} = guides(buildGuideZip(sampleDefinition));
 
-        const content = await resource.byId("abc");
+        const content = await resource.get("abc");
 
-        expect(content.icon).toEqual(new Uint8Array());
+        expect(content.icon).toEqual(undefined);
     });
 
     it("rejects when guide.json is invalid JSON", async () => {
         const bad = zipSync({"guide.json": strToU8("not-json")});
         const {resource} = guides(bad);
 
-        await expect(resource.byId("abc")).rejects.toThrow();
+        await expect(resource.get("abc")).rejects.toThrow();
     });
 
     it("rejects when bytes are not a valid zip", async () => {
         const {resource} = guides(new Uint8Array([0, 1, 2, 3]));
 
-        await expect(resource.byId("abc")).rejects.toThrow();
+        await expect(resource.get("abc")).rejects.toThrow();
     });
 });
