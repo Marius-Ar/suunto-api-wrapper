@@ -6,11 +6,12 @@ import type { HttpClient } from "./http";
  * For unit-testing resource methods without spinning a real `HttpClient`.
  */
 export function mockClient(data: unknown): HttpClient {
+  const ok = { data, status: 200, headers: new Headers() };
   return {
-    get: vi
-      .fn()
-      .mockResolvedValue({ data, status: 200, headers: new Headers() }),
-    delete: vi.fn()
+    get: vi.fn().mockResolvedValue(ok),
+    delete: vi.fn().mockResolvedValue(ok),
+    post: vi.fn().mockResolvedValue(ok),
+    put: vi.fn().mockResolvedValue(ok),
   } as unknown as HttpClient;
 }
 
