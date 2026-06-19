@@ -42,17 +42,27 @@ export class GuidesResource extends Resource {
 
   async create(guideDefinition: GuideDefinition, icon: Uint8Array): Promise<GuideUploadResponse> {
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
-    const res = await this.client.post<GuideUploadResponse>(`${GuidesResource.BASE_PATH}/files`, {
-      body: zippedGuideArray,
-      headers: {
-        'content-type': 'application/zip'
-      }
-    })
+    const res = await this.client.post<GuideUploadResponse>(`${GuidesResource.BASE_PATH}/files`, this.getGuideUploadOptions(zippedGuideArray));
+    return res.data;
+  }
+
+  async edit(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array): Promise<GuideUploadResponse> {
+    const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
+    const res = await this.client.put<GuideUploadResponse>(this.buildGuidePath(guideId), this.getGuideUploadOptions(zippedGuideArray));
     return res.data;
   }
 
   private buildGuidePath(guideId: string) {
     return `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`;
+  }
+
+  private getGuideUploadOptions(zippedGuideArray: Uint8Array<ArrayBuffer>) {
+    return {
+      body: zippedGuideArray,
+      headers: {
+        'content-type': 'application/zip'
+      }
+    };
   }
 
   private static zipGuide(guideDefinition: GuideDefinition, icon: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
