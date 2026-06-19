@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import { HttpClient } from "./index.js";
 
 describe("HttpClient", () => {
@@ -70,5 +70,25 @@ describe("HttpClient", () => {
     // caller-supplied fetch — the caller controls binding/wrapping.
     expect(seen).toHaveLength(1);
     expect(seen[0].thisArg).toBe(client);
+  });
+
+  describe('delete', () => {
+    let mockClient: HttpClient;
+    beforeEach(() => {
+      mockClient = new HttpClient();
+      vi.spyOn(mockClient, 'request').mockResolvedValue(undefined as never);
+    })
+
+    it('should call request method with 0 retries', () => {
+      mockClient.delete('https://example.com');
+
+      expect(mockClient.request).toHaveBeenCalledWith('DELETE', 'https://example.com', {retries: 0});
+    });
+
+    it('should call request method with the provided amount of retries', () => {
+      mockClient.delete('https://example.com', {retries: 2});
+
+      expect(mockClient.request).toHaveBeenCalledWith('DELETE', 'https://example.com', {retries: 2});
+    });
   });
 });
