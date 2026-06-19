@@ -27,6 +27,7 @@ export class GuidesResource extends Resource {
    * Fetch a single guide by id. Endpoint returns a zip containing
    * `guide.json` (parsed into {@link GuideDefinition}) and `icon.png`
    * (returned as raw bytes).
+   * @param guideId Id of the guide to fetch.
    */
   async get(guideId: string): Promise<GuideContent> {
     const res = await this.client.get<Uint8Array>(
@@ -37,10 +38,26 @@ export class GuidesResource extends Resource {
     return {definition, icon, raw: res.data};
   }
 
+  /**
+   * Permanently delete a guide by id. Resolves on success, rejects on 404 or
+   * any other non-2xx. Uses the default `DELETE` retry policy (0 retries) to
+   * avoid a successful delete being masked as a 404 on the second attempt.
+   * @param guideId Id of the guide to delete.
+   */
   async delete(guideId: string): Promise<void> {
     await this.client.delete<void>(this.buildGuidePath(guideId));
   }
 
+  /**
+   * Upload a new SuuntoPlus guide. The definition is JSON-serialised and
+   * packed with the icon into a zip (`guide.json` + `icon.png`) posted to
+   * the guides endpoint as `application/zip`.
+   *
+   * @param guideDefinition Parsed guide definition (steps, activities, ...).
+   * @param icon Optional 300x300 PNG bytes. Defaults to a fully-transparent
+   *   300x300 PNG generated in-package — pass your own to brand the guide.
+   * @throws If the icon is not a valid PNG or not exactly 300x300.
+   */
   async create(guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
     GuidesResource.checkPngSize(icon);
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
@@ -48,6 +65,16 @@ export class GuidesResource extends Resource {
     return res.data;
   }
 
+  /**
+   * Replace an existing guide. Same zip payload as {@link create}, sent as
+   * `PUT` to the encoded guide path.
+   *
+   * @param guideId Id of the guide to replace.
+   * @param guideDefinition New guide definition.
+   * @param icon Optional 300x300 PNG bytes. Defaults to the built-in
+   *   transparent icon.
+   * @throws If the icon is not a valid PNG or not exactly 300x300.
+   */
   async update(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
     GuidesResource.checkPngSize(icon);
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
