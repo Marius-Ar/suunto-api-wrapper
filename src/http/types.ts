@@ -22,6 +22,8 @@ export interface RequestContext {
   body?: RequestBody | null;
 }
 
+export type ResponseType = "json" | "bytes";
+
 export interface RequestOptions {
   query?: Query;
   headers?: Record<string, string>;
@@ -30,6 +32,7 @@ export interface RequestOptions {
   timeoutMs?: number;
   retries?: number;
   signal?: AbortSignal;
+  responseType?: ResponseType;
 }
 
 export interface HttpResponse<T> {

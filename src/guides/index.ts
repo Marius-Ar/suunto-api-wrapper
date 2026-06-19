@@ -1,5 +1,10 @@
+import { unzip } from "fflate";
 import { Resource } from "../http/resource";
-import { GuideListResponse } from "./types";
+import {
+  GuideContent,
+  GuideDefinition,
+  GuideListResponse,
+} from "./types";
 
 export * from "./types.js";
 
@@ -13,6 +18,40 @@ export class GuidesResource extends Resource {
    * {@link byId} to get the parsed guide definition.
    */
   list(): Promise<GuideListResponse> {
-    return this.call<GuideListResponse>({ path: `${GuidesResource.BASE_PATH}/items` });
+    return this.call<GuideListResponse>({
+      path: `${GuidesResource.BASE_PATH}/items`,
+    });
+  }
+
+  /**
+   * Fetch a single guide by id. Endpoint returns a zip containing
+   * `guide.json` (parsed into {@link GuideDefinition}) and `icon.png`
+   * (returned as raw bytes).
+   */
+  async byId(guideId: string): Promise<GuideContent> {
+    const res = await this.client.get<Uint8Array>(
+      `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`,
+      { responseType: "bytes" },
+    );
+    return GuidesResource.unpackGuideZip(res.data);
+  }
+
+  private static unpackGuideZip(bytes: Uint8Array): Promise<GuideContent> {
+    return new Promise((resolve, reject) => {
+      unzip(bytes, (err, files) => {
+        if (err) return reject(err);
+        const guideEntry = files["guide.json"];
+        const iconEntry = files["icon.png"];
+
+        try {
+          const definition = JSON.parse(
+            new TextDecoder().decode(guideEntry),
+          ) as GuideDefinition;
+          resolve({ definition, icon: iconEntry ?? new Uint8Array() });
+        } catch (parseErr) {
+          reject(parseErr);
+        }
+      });
+    });
   }
 }
