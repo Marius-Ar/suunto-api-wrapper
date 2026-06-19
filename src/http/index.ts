@@ -55,7 +55,7 @@ export class HttpClient {
   }
 
   delete<T>(path: string, options?: RequestOptions): Promise<HttpResponse<T>> {
-    return this.request<T>("DELETE", path, options);
+    return this.request<T>("DELETE", path, {retries: 0, ...options});
   }
 
   post<T>(path: string, options?: RequestOptions): Promise<HttpResponse<T>> {
