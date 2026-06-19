@@ -1,5 +1,6 @@
 import {unzip, zip} from "fflate";
 import {Resource} from "../http/resource";
+import {DEFAULT_GUIDE_ICON} from "./default-icon";
 import {GuideContent, GuideDefinition, GuideListResponse, GuideUploadResponse,} from "./types";
 
 export * from "./types.js";
@@ -40,13 +41,15 @@ export class GuidesResource extends Resource {
     await this.client.delete<void>(this.buildGuidePath(guideId));
   }
 
-  async create(guideDefinition: GuideDefinition, icon: Uint8Array): Promise<GuideUploadResponse> {
+  async create(guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
+    GuidesResource.checkPngSize(icon);
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
     const res = await this.client.post<GuideUploadResponse>(`${GuidesResource.BASE_PATH}/files`, this.getGuideUploadOptions(zippedGuideArray));
     return res.data;
   }
 
-  async edit(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array): Promise<GuideUploadResponse> {
+  async edit(guideId: string, guideDefinition: GuideDefinition, icon: Uint8Array = DEFAULT_GUIDE_ICON): Promise<GuideUploadResponse> {
+    GuidesResource.checkPngSize(icon);
     const zippedGuideArray = await GuidesResource.zipGuide(guideDefinition, icon);
     const res = await this.client.put<GuideUploadResponse>(this.buildGuidePath(guideId), this.getGuideUploadOptions(zippedGuideArray));
     return res.data;
@@ -103,5 +106,22 @@ export class GuidesResource extends Resource {
         }
       });
     });
+  }
+
+  private static readPngSize(bytes: Uint8Array): { width: number; height: number } {
+    // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+    const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    if (bytes.length < 24 || sig.some((b, i) => bytes[i] !== b)) {
+      throw new Error("icon: not a valid PNG");
+    }
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return { width: view.getUint32(16), height: view.getUint32(20) };
+  }
+
+  private static checkPngSize(bytes: Uint8Array): void {
+    const { width, height } = GuidesResource.readPngSize(bytes);
+    if (width !== 300 || height !== 300) {
+      throw new Error(`icon must be 300x300, got ${width}x${height}`);
+    }
   }
 }
