@@ -84,3 +84,14 @@ describe("get", () => {
         await expect(resource.get("abc")).rejects.toThrow();
     });
 });
+
+describe("delete", () => {
+    it("requests the delete guide file endpoint as bytes with an encoded id", async () => {
+        const {client, resource} = guides();
+        await resource.delete("guide/with spaces");
+
+        expect(client.delete).toHaveBeenCalledWith(
+            "/apiserver/v1/suuntoplus/guides/files/guide%2Fwith%20spaces"
+        );
+    });
+});
