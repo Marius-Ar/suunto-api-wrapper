@@ -30,11 +30,19 @@ export class GuidesResource extends Resource {
    */
   async get(guideId: string): Promise<GuideContent> {
     const res = await this.client.get<Uint8Array>(
-      `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`,
+      this.buildGuidePath(guideId),
       { responseType: "bytes" },
     );
     const {definition, icon} = await GuidesResource.unpackGuideZip(res.data);
     return {definition, icon, raw: res.data};
+  }
+
+  async delete(guideId: string): Promise<void> {
+    await this.client.delete<void>(this.buildGuidePath(guideId));
+  }
+
+  private buildGuidePath(guideId: string) {
+    return `${GuidesResource.BASE_PATH}/files/${encodeURIComponent(guideId)}`;
   }
 
   private static unpackGuideZip(bytes: Uint8Array): Promise<Omit<GuideContent, 'raw'>> {

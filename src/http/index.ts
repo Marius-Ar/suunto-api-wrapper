@@ -55,7 +55,10 @@ export class HttpClient {
   }
 
   delete<T>(path: string, options?: RequestOptions): Promise<HttpResponse<T>> {
-    return this.request<T>("DELETE", path, options);
+    // DELETE is idempotent per HTTP spec, but a retried success looks like 404
+    // and surfaces as an error. Opt-out by default; caller can re-enable with
+    // `retries: N`.
+    return this.request<T>("DELETE", path, {retries: 0, ...options});
   }
 
   post<T>(path: string, options?: RequestOptions): Promise<HttpResponse<T>> {

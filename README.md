@@ -97,6 +97,7 @@ payload, typed to the real API response shape (an envelope of
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
 | `suunto.guides`    | `.list()`                      | SuuntoPlus guides available to you (metadata only) |
 |                    | `.get(id)`                     | a single guide unpacked from its zip (definition + icon + raw bytes) |
+|                    | `.delete(id)`                  | permanently delete a guide                |
 | `suunto.wellness`  | `.sleep(params?)`              | sleep summaries (247)                     |
 |                    | `.sleepStages(params?)`        | per‑stage sleep intervals (247)           |
 |                    | `.recovery(params?)`           | recovery balance + stress state (247)     |
@@ -125,6 +126,7 @@ const guide  = await suunto.guides.get("guide-id");     // unzipped: { definitio
 // guide.definition — parsed guide.json (name, activities, steps, ...)
 // guide.icon       — icon.png bytes
 // guide.raw        — full zip bytes if you want to cache/persist it
+await suunto.guides.delete("guide-id");                 // permanent; throws on 404
 
 // 247 wellness data — sleep, recovery, activity
 const sleep   = await suunto.wellness.sleep({ since: 0 });        // since = epoch ms; 0 returns all
@@ -176,6 +178,24 @@ const res = await suunto.http.get("/apiserver/v1/some/other/endpoint", {
   query: { foo: "bar" },
 });
 console.log(res.status, res.data);
+```
+
+### Retries
+
+The HTTP client retries failed requests with exponential backoff + jitter
+(plus `Retry-After` when present). Defaults: **2 retries**, 300 ms base
+backoff, applied only to idempotent methods (`GET`, `HEAD`, `OPTIONS`, `PUT`,
+`DELETE`) on retryable statuses (408, 429, 500, 502, 503, 504) or transport
+errors.
+
+**`DELETE` is the exception.** It defaults to **0 retries**. A retried
+`DELETE` whose first attempt actually succeeded will see a 404 on the second
+attempt and surface as an error — even though the delete worked. Opt back in
+per call when you want it:
+
+```ts
+await suunto.guides.delete("guide-id");                  // 0 retries (default)
+await suunto.http.delete("/some/path", { retries: 3 });  // opt-in
 ```
 
 ---

@@ -10,6 +10,7 @@ export function mockClient(data: unknown): HttpClient {
     get: vi
       .fn()
       .mockResolvedValue({ data, status: 200, headers: new Headers() }),
+    delete: vi.fn()
   } as unknown as HttpClient;
 }
 
