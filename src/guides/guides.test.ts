@@ -53,12 +53,14 @@ describe("get", () => {
 
     it("unpacks the guide zip into definition + icon", async () => {
         const icon = new Uint8Array([1, 2, 3, 4]);
-        const {resource} = guides(buildGuideZip(sampleDefinition, icon));
+        const zip = buildGuideZip(sampleDefinition, icon);
+        const {resource} = guides(zip);
 
         const content = await resource.get("abc");
 
         expect(content.definition).toEqual(sampleDefinition);
         expect(content.icon).toEqual(icon);
+        expect(content.raw).toEqual(zip)
     });
 
     it("defaults icon to empty bytes when missing", async () => {
