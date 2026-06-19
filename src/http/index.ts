@@ -1,7 +1,15 @@
 export * from "./types.js";
 export { endpoint, type EndpointSpec } from "./endpoint.js";
 
-import type {HttpClientOptions, HttpResponse, Query, RequestBody, RequestContext, RequestOptions,} from "./types.js";
+import type {
+  HttpClientOptions,
+  HttpResponse,
+  Query,
+  RequestBody,
+  RequestContext,
+  RequestOptions,
+  ResponseType,
+} from "./types.js";
 import {HttpError} from "./types.js";
 
 const DEFAULTS = {
@@ -84,7 +92,7 @@ export class HttpClient {
           await sleep(this.backoff(attempt, response.headers));
           continue;
         }
-        return await this.toResult<T>(response, method, url);
+        return await this.toResult<T>(response, method, url, options.responseType);
       } catch (err) {
         lastError = err;
         if (isAbortError(err) && options.signal?.aborted) throw err;
@@ -133,8 +141,9 @@ export class HttpClient {
     response: Response,
     method: string,
     url: string,
+    responseType?: "json" | "bytes",
   ): Promise<HttpResponse<T>> {
-    const data = (await parseBody(response)) as T;
+    const data = (await parseBody(response, responseType)) as T;
     if (!response.ok) {
       throw new HttpError(
         `${method} ${url} failed with status ${response.status}`,
@@ -173,8 +182,14 @@ export class HttpClient {
   }
 }
 
-async function parseBody(response: Response): Promise<unknown> {
+async function parseBody(
+  response: Response,
+  responseType?: ResponseType,
+): Promise<unknown> {
   if (response.status === 204 || response.status === 205) return undefined;
+  if (responseType === "bytes") {
+    return new Uint8Array(await response.arrayBuffer());
+  }
   const contentType = response.headers.get("content-type") ?? "";
   const text = await response.text();
   if (!text) return undefined;

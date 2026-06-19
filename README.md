@@ -95,6 +95,8 @@ payload, typed to the real API response shape (an envelope of
 | `suunto.users`     | `.byName(username)`            | a user's public profile                   |
 |                    | `.search(terms)`               | search for users                          |
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
+| `suunto.guides`    | `.list()`                      | SuuntoPlus guides available to you (metadata only) |
+|                    | `.get(id)`                     | a single guide unpacked from its zip (definition + icon + raw bytes) |
 | `suunto.wellness`  | `.sleep(params?)`              | sleep summaries (247)                     |
 |                    | `.sleepStages(params?)`        | per‑stage sleep intervals (247)           |
 |                    | `.recovery(params?)`           | recovery balance + stress state (247)     |
@@ -116,6 +118,13 @@ const matches = await suunto.users.search("john");
 
 // Gear
 const gear = await suunto.gear.latest("someuser", { allTypes: true });
+
+// SuuntoPlus guides
+const guides = await suunto.guides.list();              // list metadata for every guide
+const guide  = await suunto.guides.get("guide-id");     // unzipped: { definition, icon, raw }
+// guide.definition — parsed guide.json (name, activities, steps, ...)
+// guide.icon       — icon.png bytes
+// guide.raw        — full zip bytes if you want to cache/persist it
 
 // 247 wellness data — sleep, recovery, activity
 const sleep   = await suunto.wellness.sleep({ since: 0 });        // since = epoch ms; 0 returns all
