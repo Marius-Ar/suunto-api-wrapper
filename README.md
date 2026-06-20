@@ -90,23 +90,23 @@ payload, typed to the real API response shape (an envelope of
 | `suunto.workouts`  | `.own(params?)`                  | your own workouts                         |
 |                    | `.public(username, params?)`     | a user's public workouts                  |
 |                    | `.byKey(username, key, params?)` | a single workout (public, or your own when authed) |
-|                    | `.stats(username)`               | aggregated workout stats per activity     |
-|                    | `.within(box)`                   | public workouts inside a lat/lng bounding box |
+|                    | `.stats(username)`              | aggregated workout stats per activity     |
+|                    | `.within(box)`                  | public workouts inside a lat/lng bounding box |
 |                    | `.comment(key, text)`            | post a comment on a workout               |
-|                    | `.like(key)`                     | react (like) a workout                    |
-|                    | `.unlike(key)`                   | remove your reaction from a workout       |
-| `suunto.users`     | `.byName(username)`              | a user's public profile                   |
-|                    | `.search(terms)`                 | search for users                          |
-| `suunto.gear`      | `.latest(username, params?)`     | a user's latest gear                      |
-| `suunto.guides`    | `.list()`                        | SuuntoPlus guides available to you (metadata only) |
-|                    | `.get(id)`                       | a single guide unpacked from its zip (definition + icon + raw bytes) |
-|                    | `.create(definition, icon?)`     | upload a new guide (zips definition + 300x300 PNG icon) |
+|                    | `.like(key)`                    | react (like) a workout                    |
+|                    | `.unlike(key)`                  | remove your reaction from a workout       |
+| `suunto.users`     | `.byName(username)`             | a user's public profile                   |
+|                    | `.search(terms)`                | search for users                          |
+| `suunto.gear`      | `.latest(username, params?)`    | a user's latest gear                      |
+| `suunto.guides`    | `.list()`                       | SuuntoPlus guides available to you (metadata only) |
+|                    | `.get(id)`                      | a single guide unpacked from its zip (definition + icon + raw bytes) |
+|                    | `.create(definition, icon?)`    | upload a new guide (zips definition + 300x300 PNG icon) |
 |                    | `.update(id, definition, icon?)` | replace an existing guide                |
-|                    | `.delete(id)`                    | permanently delete a guide                |
-| `suunto.wellness`  | `.sleep(params?)`                | sleep summaries (247)                     |
-|                    | `.sleepStages(params?)`          | per‑stage sleep intervals (247)           |
-|                    | `.recovery(params?)`             | recovery balance + stress state (247)     |
-|                    | `.activity(params?)`             | daily activity samples (247)              |
+|                    | `.delete(id)`                   | permanently delete a guide                |
+| `suunto.wellness`  | `.sleep(params?)`               | sleep summaries (247)                     |
+|                    | `.sleepStages(params?)`         | per‑stage sleep intervals (247)           |
+|                    | `.recovery(params?)`            | recovery balance + stress state (247)     |
+|                    | `.activity(params?)`            | daily activity samples (247)              |
 
 ```ts
 // Workouts
