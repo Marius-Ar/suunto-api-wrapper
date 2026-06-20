@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import { Resource } from "../http/resource";
+import {Resource} from "../http/resource";
 import {
   GetOwnWorkoutsParams,
   GetWorkoutParams,
@@ -10,8 +10,8 @@ import {
   WorkoutExtensionName,
   WorkoutResponse,
   WorkoutsResponse,
-  WorkoutsWithinResponse,
   WorkoutStatsResponse,
+  WorkoutsWithinResponse,
 } from "./types.js";
 
 const DEFAULT_WORKOUT_EXTENSIONS: WorkoutExtensionName[] = [
@@ -80,6 +80,20 @@ export class WorkoutsResource extends Resource {
     return this.call<WorkoutStatsResponse>({
       path: `/apiserver/v1/workouts/${encodeURIComponent(username)}/stats`,
     });
+  }
+
+  /**
+   * Post a comment on a workout. Returns the created comment in the response
+   * payload. Requires authentication.
+   */
+  async comment(
+    workoutKey: string,
+    comment: string,
+  ): Promise<void> {
+    await this.client.post<void>(
+      `/apiserver/v1/workouts/comment/${encodeURIComponent(workoutKey)}`,
+      { body: comment },
+    );
   }
 
   /**
