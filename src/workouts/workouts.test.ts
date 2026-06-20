@@ -195,6 +195,46 @@ describe("WorkoutsResource.within", () => {
   });
 });
 
+describe("WorkoutsResource.like", () => {
+  it("POSTs to the reaction endpoint", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.like("abc123");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/abc123",
+    );
+  });
+
+  it("encodes special characters in workoutId", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.like("key/with/slashes");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/key%2Fwith%2Fslashes",
+    );
+  });
+});
+
+describe("WorkoutsResource.unlike", () => {
+  it("DELETEs the reaction endpoint", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.unlike("abc123");
+
+    expect(client.delete).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/abc123",
+    );
+  });
+
+  it("encodes special characters in workoutId", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.unlike("key/with/slashes");
+
+    expect(client.delete).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/key%2Fwith%2Fslashes",
+    );
+  });
+});
+
 describe("WorkoutsResource.stats", () => {
   it("calls the correct URL", async () => {
     const { client, resource } = workouts({
