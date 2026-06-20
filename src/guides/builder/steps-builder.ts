@@ -22,7 +22,13 @@ import {
   targetSpeed,
   text as textField,
 } from "./fields";
-import {manualLap, or, stepDistance, stepDuration} from "./conditions";
+import {
+  location as locationCondition,
+  manualLap,
+  or,
+  stepDistance,
+  stepDuration,
+} from "./conditions";
 
 function newUuid(): string {
   return globalThis.crypto.randomUUID().toUpperCase();
@@ -39,7 +45,30 @@ function assertStepTitle(title: string): void {
   }
 }
 
-type TriggerKind = "duration" | "distance";
+interface PendingTrigger {
+  /** Condition that "fires" the step end. */
+  cond: GuideCondition;
+  /** When true, the trigger is used verbatim (no `manualLap` fallback wrap). */
+  raw: boolean;
+  /** When set, auto-add a matching countdown field of this kind. */
+  countdown?: {kind: "duration" | "distance"; value: number};
+}
+
+/**
+ * Suunto rejects alerts whose condition isn't `stepDuration` or `stepDistance`
+ * — recursively pick the first allowed condition inside an `or`/`and` so we
+ * can still auto-mirror an alert for compound triggers.
+ */
+function findAlertCondition(c: GuideCondition): GuideCondition | undefined {
+  if (c.type === "stepDuration" || c.type === "stepDistance") return c;
+  if (c.type === "or" || c.type === "and") {
+    for (const t of c.triggers) {
+      const found = findAlertCondition(t);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
 
 /**
  * Builder for a single fields-typed step. Passed into the callback of
@@ -50,7 +79,7 @@ export class PhaseBuilder {
   private _title?: string;
   private _id?: string;
   private _uuid?: string;
-  private _trigger?: {kind: TriggerKind; value: number};
+  private _trigger?: PendingTrigger;
   private readonly _targetFields: GuideField[] = [];
   private readonly _liveFields: GuideField[] = [];
   private readonly _extraFields: GuideField[] = [];
@@ -68,13 +97,50 @@ export class PhaseBuilder {
 
   /** End the step after `sec` seconds (or on manual lap). Adds a countdown field. */
   duration(sec: number): this {
-    this._trigger = {kind: "duration", value: sec};
+    this._trigger = {
+      cond: stepDuration(sec),
+      raw: false,
+      countdown: {kind: "duration", value: sec},
+    };
     return this;
   }
 
   /** End the step after `meters` meters (or on manual lap). Adds a countdown field. */
   distance(meters: number): this {
-    this._trigger = {kind: "distance", value: meters};
+    this._trigger = {
+      cond: stepDistance(meters),
+      raw: false,
+      countdown: {kind: "distance", value: meters},
+    };
+    return this;
+  }
+
+  /**
+   * End the step when the athlete is within `withinMeters` of the given
+   * coordinates (or on manual lap). No countdown field is added since the
+   * condition isn't time/distance bound.
+   */
+  location(latitude: number, longitude: number, withinMeters?: number): this {
+    this._trigger = {
+      cond: locationCondition(latitude, longitude, withinMeters),
+      raw: false,
+    };
+    return this;
+  }
+
+  /**
+   * Set the trigger to an arbitrary condition. The condition is used
+   * **verbatim** — no `manualLap` fallback is added — and no countdown field
+   * is auto-appended. Use {@link or} / {@link and} / `stepDuration` / ... to
+   * compose, and add countdown fields manually via `.field(...)` if needed.
+   *
+   * @example
+   * ```ts
+   * .trigger(or(stepDistance(5000), stepDuration(1800), location(45.76, 4.83, 50), manualLap()))
+   * ```
+   */
+  trigger(cond: GuideCondition): this {
+    this._trigger = {cond, raw: true};
     return this;
   }
 
@@ -155,19 +221,19 @@ export class PhaseBuilder {
     if (this._id !== undefined) step.id = this._id;
     if (!this._suppressManualLap) step.lap = {type: "manual", hidden: true};
     if (this._trigger) {
-      const cond: GuideCondition =
-        this._trigger.kind === "duration"
-          ? stepDuration(this._trigger.value)
-          : stepDistance(this._trigger.value);
-      step.trigger = or(cond, manualLap());
+      const {cond, raw} = this._trigger;
+      step.trigger = raw ? cond : or(cond, manualLap());
       if (!this._suppressAlerts) {
-        step.alerts = [
-          {
-            type: "default",
-            condition: cond,
-            countdown: {type: "standard"},
-          },
-        ];
+        const alertCondition = findAlertCondition(cond);
+        if (alertCondition) {
+          step.alerts = [
+            {
+              type: "default",
+              condition: alertCondition,
+              countdown: {type: "standard"},
+            },
+          ];
+        }
       }
     }
     if (fields.length > 0) step.fields = fields;
@@ -175,10 +241,11 @@ export class PhaseBuilder {
   }
 
   private getCountdownField() {
-    if (!this._trigger) return undefined
-    return this._trigger.kind === "duration"
-            ? stepDurationCountdown(this._trigger.value)
-            : stepDistanceCountdown(this._trigger.value);
+    const c = this._trigger?.countdown;
+    if (!c) return undefined;
+    return c.kind === "duration"
+      ? stepDurationCountdown(c.value)
+      : stepDistanceCountdown(c.value);
   }
 }
 
