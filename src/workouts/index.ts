@@ -97,6 +97,27 @@ export class WorkoutsResource extends Resource {
   }
 
   /**
+   * Add a reaction (like) to a workout on behalf of the authenticated user.
+   * Idempotent on the server side.
+   */
+  async like(workoutId: string): Promise<void> {
+    await this.client.post<void>(this.reactionPath(workoutId));
+  }
+
+  /**
+   * Remove the authenticated user's reaction (like) from a workout. Uses the
+   * default `DELETE` retry policy (0 retries) so a successful delete is not
+   * masked as a 404 on retry.
+   */
+  async unlike(workoutId: string): Promise<void> {
+    await this.client.delete<void>(this.reactionPath(workoutId));
+  }
+
+  private reactionPath(workoutId: string): string {
+    return `/apiserver/v1/workouts/reaction/${encodeURIComponent(workoutId)}`;
+  }
+
+  /**
    * Public workouts whose center position falls inside the given geographic
    * bounding box. Used by the "explore nearby" map view. Unauthenticated.
    */
