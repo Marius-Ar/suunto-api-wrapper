@@ -101,7 +101,10 @@ export class WorkoutsResource extends Resource {
    * Idempotent on the server side.
    */
   async like(workoutId: string): Promise<void> {
-    await this.client.post<void>(this.reactionPath(workoutId));
+    await this.client.post<void>(
+      this.reactionPath(workoutId),
+      { headers: { 'content-type': 'application/json' } }
+    );
   }
 
   /**

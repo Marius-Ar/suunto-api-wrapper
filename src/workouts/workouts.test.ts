@@ -202,6 +202,7 @@ describe("WorkoutsResource.like", () => {
 
     expect(client.post).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/reaction/abc123",
+      { headers: { 'content-type': 'application/json' } }
     );
   });
 
@@ -211,6 +212,7 @@ describe("WorkoutsResource.like", () => {
 
     expect(client.post).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/reaction/key%2Fwith%2Fslashes",
+      { headers: { 'content-type': 'application/json' } }
     );
   });
 });
