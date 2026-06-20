@@ -97,6 +97,8 @@ payload, typed to the real API response shape (an envelope of
 | `suunto.gear`      | `.latest(username, params?)`   | a user's latest gear                      |
 | `suunto.guides`    | `.list()`                      | SuuntoPlus guides available to you (metadata only) |
 |                    | `.get(id)`                     | a single guide unpacked from its zip (definition + icon + raw bytes) |
+|                    | `.create(definition, icon?)`   | upload a new guide (zips definition + 300x300 PNG icon) |
+|                    | `.update(id, definition, icon?)` | replace an existing guide                |
 |                    | `.delete(id)`                  | permanently delete a guide                |
 | `suunto.wellness`  | `.sleep(params?)`              | sleep summaries (247)                     |
 |                    | `.sleepStages(params?)`        | per‑stage sleep intervals (247)           |
@@ -126,6 +128,14 @@ const guide  = await suunto.guides.get("guide-id");     // unzipped: { definitio
 // guide.definition — parsed guide.json (name, activities, steps, ...)
 // guide.icon       — icon.png bytes
 // guide.raw        — full zip bytes if you want to cache/persist it
+
+// Create a new guide. Icon must be a 300x300 PNG; omit it to use the
+// built-in transparent default.
+const created = await suunto.guides.create(guide.definition, iconPngBytes);
+
+// Replace an existing guide's content + icon
+await suunto.guides.update("guide-id", guide.definition);
+
 await suunto.guides.delete("guide-id");                 // permanent; throws on 404
 
 // 247 wellness data — sleep, recovery, activity
