@@ -80,6 +80,61 @@ describe("guide builder", () => {
     ).toThrow(/short description must be at most 23/);
   });
 
+  it("location trigger wraps with manualLap fallback and no countdown", () => {
+    const def = guide()
+      .name("x").owner("y").description("d").shortDescription("s")
+      .interval(s => s.location(45.76, 4.83, 50).targetHr(130, 140))
+      .build();
+    const step = def.steps[0] as GuideFieldsStep;
+    expect(step.trigger).toEqual({
+      type: "or",
+      triggers: [
+        {type: "location", latitude: 45.76, longitude: 4.83, distance: 50},
+        {type: "manualLap"},
+      ],
+    });
+    // no countdown auto-added
+    expect(step.fields?.some(f => f.type.endsWith("Countdown"))).toBe(false);
+    // location is not allowed in alert.condition → no alert emitted
+    expect(step.alerts).toBeUndefined();
+  });
+
+  it("trigger() uses condition verbatim with no manualLap fallback", () => {
+    const def = guide()
+      .name("x").owner("y").description("d").shortDescription("s")
+      .interval(s => s
+        .trigger({
+          type: "or",
+          triggers: [
+            {type: "stepDistance", value: 5000},
+            {type: "stepDuration", value: 1800},
+            {type: "manualLap"},
+          ],
+        })
+        .targetHr(130, 140),
+      )
+      .build();
+    const step = def.steps[0] as GuideFieldsStep;
+    expect(step.trigger).toEqual({
+      type: "or",
+      triggers: [
+        {type: "stepDistance", value: 5000},
+        {type: "stepDuration", value: 1800},
+        {type: "manualLap"},
+      ],
+    });
+    // no countdown auto-added for raw triggers
+    expect(step.fields?.some(f => f.type.endsWith("Countdown"))).toBe(false);
+    // first allowed cond (stepDistance) inside the or() is picked for the alert
+    expect(step.alerts).toEqual([
+      {
+        type: "default",
+        condition: {type: "stepDistance", value: 5000},
+        countdown: {type: "standard"},
+      },
+    ]);
+  });
+
   it("throws if a phase step title exceeds 13 chars", () => {
     expect(() =>
       guide()
