@@ -264,7 +264,7 @@ describe("WorkoutsResource.comment", () => {
 
     expect(client.post).toHaveBeenCalledWith(
       "/apiserver/v1/workouts/comment/abc123",
-      { json: { comment: "nice run" } },
+      { body: "nice run" },
     );
   });
 
