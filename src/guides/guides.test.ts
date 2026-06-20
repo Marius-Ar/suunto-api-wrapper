@@ -11,13 +11,13 @@ function guides(data: unknown = null) {
 }
 
 const sampleDefinition: GuideDefinition = {
-    type: "guide",
+    type: "sequence",
     name: "Test Guide",
     description: "desc",
     shortDescription: "short",
     owner: "owner",
     activities: [],
-    usage: "usage",
+    usage: "workout",
     steps: [],
 };
 
