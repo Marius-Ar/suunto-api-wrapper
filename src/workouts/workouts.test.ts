@@ -256,3 +256,32 @@ describe("WorkoutsResource.stats", () => {
     expect(result).toEqual(payload);
   });
 });
+
+describe("WorkoutsResource.comment", () => {
+  it("posts to the correct URL with JSON body", async () => {
+    const { client, resource } = workouts({});
+    await resource.comment("abc123", "nice run");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/comment/abc123",
+      { json: { comment: "nice run" } },
+    );
+  });
+
+  it("encodes special characters in workoutKey", async () => {
+    const { client, resource } = workouts({});
+    await resource.comment("abc 123", "hi");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/comment/abc%20123",
+      expect.anything(),
+    );
+  });
+
+  it("resolves to undefined on success", async () => {
+    const { resource } = workouts({});
+    const result = await resource.comment("abc123", "nice run");
+
+    expect(result).toBeUndefined();
+  });
+});
