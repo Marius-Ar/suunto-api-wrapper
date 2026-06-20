@@ -1,6 +1,6 @@
 export * from "./types.js";
 
-import { endpoint, type HttpClient } from "../http";
+import {Resource} from "../http/resource";
 import {
   GetOwnWorkoutsParams,
   GetWorkoutParams,
@@ -10,8 +10,8 @@ import {
   WorkoutExtensionName,
   WorkoutResponse,
   WorkoutsResponse,
-  WorkoutsWithinResponse,
   WorkoutStatsResponse,
+  WorkoutsWithinResponse,
 } from "./types.js";
 
 const DEFAULT_WORKOUT_EXTENSIONS: WorkoutExtensionName[] = [
@@ -28,12 +28,10 @@ const DEFAULT_WORKOUT_ADDITIONAL_DATA: WorkoutAdditionalData[] = [
 ];
 
 /** Workout endpoints, bound to an {@link HttpClient}. Accessed via `suunto.workouts`. */
-export class WorkoutsResource {
-  constructor(private readonly client: HttpClient) {}
-
+export class WorkoutsResource extends Resource {
   /** The authenticated user's own workouts. */
   own(params: GetOwnWorkoutsParams = {}): Promise<WorkoutsResponse> {
-    return endpoint<WorkoutsResponse>(this.client, {
+    return this.call<WorkoutsResponse>({
       path: "/apiserver/v1/workouts",
       query: {
         offset: params.offset ?? 0,
@@ -48,7 +46,7 @@ export class WorkoutsResource {
     username: string,
     params: GetWorkoutsParams = {},
   ): Promise<WorkoutsResponse> {
-    return endpoint<WorkoutsResponse>(this.client, {
+    return this.call<WorkoutsResponse>({
       path: `/apiserver/v1/workouts/${encodeURIComponent(username)}/public`,
       query: { limit: params.limit ?? 40, sortonst: params.sortonst ?? true },
     });
@@ -65,7 +63,7 @@ export class WorkoutsResource {
   ): Promise<WorkoutResponse> {
     const extensions = params.extensions ?? DEFAULT_WORKOUT_EXTENSIONS;
     const additionalData = params.additionalData ?? DEFAULT_WORKOUT_ADDITIONAL_DATA;
-    return endpoint<WorkoutResponse>(this.client, {
+    return this.call<WorkoutResponse>({
       path: `/apiserver/v2/workouts/${encodeURIComponent(username)}/${encodeURIComponent(workoutKey)}/combined`,
       query: {
         extensions: extensions.join(","),
@@ -79,9 +77,47 @@ export class WorkoutsResource {
    * unauthenticated.
    */
   stats(username: string): Promise<WorkoutStatsResponse> {
-    return endpoint<WorkoutStatsResponse>(this.client, {
+    return this.call<WorkoutStatsResponse>({
       path: `/apiserver/v1/workouts/${encodeURIComponent(username)}/stats`,
     });
+  }
+
+  /**
+   * Post a comment on a workout. Returns the created comment in the response
+   * payload. Requires authentication.
+   */
+  async comment(
+    workoutKey: string,
+    comment: string,
+  ): Promise<void> {
+    await this.client.post<void>(
+      `/apiserver/v1/workouts/comment/${encodeURIComponent(workoutKey)}`,
+      { body: comment },
+    );
+  }
+
+  /**
+   * Add a reaction (like) to a workout on behalf of the authenticated user.
+   * Idempotent on the server side.
+   */
+  async like(workoutId: string): Promise<void> {
+    await this.client.post<void>(
+      this.reactionPath(workoutId),
+      { headers: { 'content-type': 'application/json' } }
+    );
+  }
+
+  /**
+   * Remove the authenticated user's reaction (like) from a workout. Uses the
+   * default `DELETE` retry policy (0 retries) so a successful delete is not
+   * masked as a 404 on retry.
+   */
+  async unlike(workoutId: string): Promise<void> {
+    await this.client.delete<void>(this.reactionPath(workoutId));
+  }
+
+  private reactionPath(workoutId: string): string {
+    return `/apiserver/v1/workouts/reaction/${encodeURIComponent(workoutId)}`;
   }
 
   /**
@@ -91,7 +127,7 @@ export class WorkoutsResource {
   within(
     params: GetWorkoutsWithinParams,
   ): Promise<WorkoutsWithinResponse> {
-    return endpoint<WorkoutsWithinResponse>(this.client, {
+    return this.call<WorkoutsWithinResponse>({
       path: "/apiserver/v1/workouts/public/within",
       query: {
         lowerlat: params.lowerLat,

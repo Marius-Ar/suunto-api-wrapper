@@ -195,6 +195,48 @@ describe("WorkoutsResource.within", () => {
   });
 });
 
+describe("WorkoutsResource.like", () => {
+  it("POSTs to the reaction endpoint", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.like("abc123");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/abc123",
+      { headers: { 'content-type': 'application/json' } }
+    );
+  });
+
+  it("encodes special characters in workoutId", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.like("key/with/slashes");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/key%2Fwith%2Fslashes",
+      { headers: { 'content-type': 'application/json' } }
+    );
+  });
+});
+
+describe("WorkoutsResource.unlike", () => {
+  it("DELETEs the reaction endpoint", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.unlike("abc123");
+
+    expect(client.delete).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/abc123",
+    );
+  });
+
+  it("encodes special characters in workoutId", async () => {
+    const { client, resource } = workouts(undefined);
+    await resource.unlike("key/with/slashes");
+
+    expect(client.delete).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/reaction/key%2Fwith%2Fslashes",
+    );
+  });
+});
+
 describe("WorkoutsResource.stats", () => {
   it("calls the correct URL", async () => {
     const { client, resource } = workouts({
@@ -254,5 +296,34 @@ describe("WorkoutsResource.stats", () => {
     const result = await resource.stats("johndoe");
 
     expect(result).toEqual(payload);
+  });
+});
+
+describe("WorkoutsResource.comment", () => {
+  it("posts to the correct URL with JSON body", async () => {
+    const { client, resource } = workouts({});
+    await resource.comment("abc123", "nice run");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/comment/abc123",
+      { body: "nice run" },
+    );
+  });
+
+  it("encodes special characters in workoutKey", async () => {
+    const { client, resource } = workouts({});
+    await resource.comment("abc 123", "hi");
+
+    expect(client.post).toHaveBeenCalledWith(
+      "/apiserver/v1/workouts/comment/abc%20123",
+      expect.anything(),
+    );
+  });
+
+  it("resolves to undefined on success", async () => {
+    const { resource } = workouts({});
+    const result = await resource.comment("abc123", "nice run");
+
+    expect(result).toBeUndefined();
   });
 });

@@ -5,6 +5,12 @@ const include = ["src/**/*.test.ts"];
 
 export default defineConfig({
   test: {
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.test.ts", "src/**/__screenshots__/**"],
+    },
     projects: [
       {
         test: {
