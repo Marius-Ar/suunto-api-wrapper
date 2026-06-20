@@ -4,6 +4,7 @@ import {DEFAULT_GUIDE_ICON} from "./default-icon";
 import {GuideContent, GuideDefinition, GuideListResponse, GuideUploadResponse,} from "./types";
 
 export * from "./types.js";
+export * from "./builder/index.js";
 
 export class GuidesResource extends Resource {
   private static readonly BASE_PATH = "/apiserver/v1/suuntoplus/guides";
