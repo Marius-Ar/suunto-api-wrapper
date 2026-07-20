@@ -184,3 +184,19 @@ export {
 } from "./guides/index.js";
 
 export { SuuntoClient, type SuuntoClientOptions } from "./client.js";
+
+export {
+  TrainingPlansResource,
+  type TrainingPlanningResponse,
+  type TrainingTargetRange,
+  type PlannedWorkout,
+  type WeeklyTargets,
+  type WeeklyProgram,
+  type TrainingPlanHeader,
+  type TrainingPlan,
+  type TrainingPlanCatalogueCategory,
+  type TrainingPlanCatalogue,
+  type TrainingPlanResponse,
+  type TrainingPlansResponse,
+  type TrainingPlanCatalogueResponse,
+} from "./training-plans/index.js";

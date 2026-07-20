@@ -5,6 +5,7 @@ import {UsersResource} from "./users";
 import {GearResource} from "./gear";
 import {WellnessResource} from "./wellness";
 import {GuidesResource} from "./guides";
+import {TrainingPlansResource} from "./training-plans";
 
 export interface SuuntoClientOptions
   extends Omit<HttpClientOptions, "beforeRequest"> {
@@ -41,6 +42,7 @@ export class SuuntoClient {
   readonly users: UsersResource;
   readonly gear: GearResource;
   readonly guides: GuidesResource;
+  readonly trainingPlans: TrainingPlansResource;
   readonly wellness: WellnessResource;
 
   constructor(options: SuuntoClientOptions) {
@@ -69,6 +71,7 @@ export class SuuntoClient {
     this.users = new UsersResource(this.http);
     this.gear = new GearResource(this.http);
     this.guides = new GuidesResource(this.http);
+    this.trainingPlans = new TrainingPlansResource(this.http);
     this.wellness = new WellnessResource({
       auth,
       baseUrl: baseUrl247,
