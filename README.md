@@ -103,6 +103,11 @@ payload, typed to the real API response shape (an envelope of
 |                    | `.create(definition, icon?)`    | upload a new guide (zips definition + 300x300 PNG icon) |
 |                    | `.update(id, definition, icon?)` | replace an existing guide                |
 |                    | `.delete(id)`                   | permanently delete a guide                |
+| `suunto.trainingPlans` | `.catalogue()`              | available Suunto Coach programme templates |
+|                    | `.list()`                       | your generated training plans             |
+|                    | `.active()`                     | your currently active training plan       |
+|                    | `.last()`                       | your most recently generated training plan |
+|                    | `.byId(id)`                     | a generated training plan by ID           |
 | `suunto.wellness`  | `.sleep(params?)`               | sleep summaries (247)                     |
 |                    | `.sleepStages(params?)`         | per‑stage sleep intervals (247)           |
 |                    | `.recovery(params?)`            | recovery balance + stress state (247)     |
@@ -143,6 +148,19 @@ const created = await suunto.guides.create(guide.definition, iconPngBytes);
 await suunto.guides.update("guide-id", guide.definition);
 
 await suunto.guides.delete("guide-id");                 // permanent; throws on 404
+
+// Suunto Coach / My Plan (read-only)
+const catalogue = await suunto.trainingPlans.catalogue();
+const plans     = await suunto.trainingPlans.list();
+const active    = await suunto.trainingPlans.active();
+const latest    = await suunto.trainingPlans.last();
+const plan      = await suunto.trainingPlans.byId("plan-id");
+
+for (const week of active.payload.weeklyPrograms) {
+  for (const workout of week.plannedWorkouts) {
+    console.log(workout.trainingDate, workout.name, workout.duration);
+  }
+}
 
 // Build a guide definition fluently — see "Guide builder" below
 import { guide } from "suunto-api-wrapper";
